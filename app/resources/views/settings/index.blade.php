@@ -56,7 +56,7 @@
             <div>
                 <label class="block text-xs text-slate-400 mb-2">Per-User Cooldown (seconds)</label>
                 <input type="number" name="per_user_cooldown" min="5" max="300" required
-                    value="{{ $settings['per_user_cooldown'] ?? 30 }}"
+                    value="{{ $settings['per_user_cooldown'] ?? 5 }}"
                     class="w-full rounded-xl px-4 py-2.5 text-sm" />
             </div>
             <div>

@@ -27,7 +27,7 @@ class SafetyService
     // ── Per-user + global rate limit (DB-based, no Redis) ────
     public function isRateLimited(string $phone): bool
     {
-        $cooldown = (int) BotSetting::get('per_user_cooldown', '30');
+        $cooldown = (int) BotSetting::get('per_user_cooldown', '5');
         $maxGlobal = (int) BotSetting::get('max_replies_per_minute', '20');
 
         // Per-user: check last assistant message for this phone
