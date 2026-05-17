@@ -1,0 +1,172 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
+use App\Models\FlaggedConversation;
+use App\Models\Message;
+use App\Services\AIService;
+use App\Services\BotService;
+use App\Services\MemoryService;
+use App\Services\SafetyService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class WhatsAppWebhookController extends Controller
+{
+    public function __construct(
+        private SafetyService  $safety,
+        private MemoryService  $memory,
+        private AIService      $ai,
+        private BotService     $bot,
+    ) {}
+
+    // ── POST /api/whatsapp/message ────────────────────────────
+    public function receive(Request $request): JsonResponse
+    {
+        // Validate shared secret
+        if ($request->header('X-Bot-Secret') !== env('SHARED_SECRET', 'whatsapp_ai_secret_2026')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $phone     = $request->string('phone')->toString();
+        $jid       = $request->string('jid')->toString();
+        $message   = $request->string('message')->toString();
+        $messageId = $request->string('message_id')->toString();
+
+        if (!$phone || !$message) {
+            return response()->json(['error' => 'phone and message required'], 422);
+        }
+
+        // ── STEP 1: Duplicate check ───────────────────────────
+        if ($messageId && $this->safety->isDuplicate($messageId)) {
+            return response()->json(['status' => 'duplicate_ignored']);
+        }
+
+        // Log incoming
+        ActivityLog::record('message_received', "Message from {$phone}", $phone, [
+            'preview' => substr($message, 0, 80),
+        ]);
+
+        // ── STEP 2: Save incoming user message ────────────────
+        $this->memory->saveMessage($phone, $jid, 'user', $message, $messageId);
+        $this->memory->touchActivity($phone);
+
+        // ── STEP 3: Human takeover active → skip AI ──────────
+        if ($this->safety->hasHumanTakeover($phone)) {
+            ActivityLog::record('human_takeover', "Human takeover active — AI skipped", $phone);
+            return response()->json(['status' => 'human_takeover']);
+        }
+
+        // ── STEP 4: Bot enabled? ──────────────────────────────
+        if (!$this->safety->isBotEnabled()) {
+            return response()->json(['status' => 'bot_disabled']);
+        }
+
+        // ── STEP 5: Working hours? ────────────────────────────
+        if (!$this->safety->isWithinWorkingHours()) {
+            $fallback = $this->safety->outsideHoursMessage();
+            $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
+            $this->bot->sendReply($jid, $fallback);
+            ActivityLog::record('safety_block', "Outside working hours — fallback sent", $phone);
+            return response()->json(['status' => 'outside_hours']);
+        }
+
+        // ── STEP 6: Rate limited? ────────────────────────────
+        if ($this->safety->isRateLimited($phone)) {
+            ActivityLog::record('safety_block', "Rate limited — skipped", $phone);
+            return response()->json(['status' => 'rate_limited']);
+        }
+
+        // ── STEP 7: Keyword-based human trigger? ─────────────
+        if ($this->safety->requiresHumanTakeover($message)) {
+            FlaggedConversation::flagPhone($phone, 'keyword_trigger', $message);
+            ActivityLog::record('human_flag', "Flagged for human — keyword triggered", $phone, [
+                'message' => substr($message, 0, 100),
+            ]);
+            $this->notifyAdmins($phone, 'keyword_trigger', $message);
+            return response()->json(['status' => 'flagged_human']);
+        }
+
+        // ── STEP 8: Build context & generate AI reply ─────────
+        $context = $this->memory->buildContext($phone);
+
+        try {
+            $result = $this->ai->generateReply($phone, $message, $context);
+        } catch (\Throwable $e) {
+            Log::error('AI generation failed', ['error' => $e->getMessage(), 'phone' => $phone]);
+            ActivityLog::record('error', 'AI generation failed: ' . $e->getMessage(), $phone);
+            return response()->json(['status' => 'ai_error'], 500);
+        }
+
+        if (!$result) {
+            ActivityLog::record('error', 'AI returned null', $phone);
+            return response()->json(['status' => 'ai_null']);
+        }
+
+        // ── STEP 9: Post-check — flag human if AI uncertain ───
+        if ($result['flag_human']) {
+            FlaggedConversation::flagPhone($phone, $result['flag_reason'] ?? 'ai_uncertain', $message);
+            ActivityLog::record('human_flag', "AI uncertain — flagged for human ({$result['flag_reason']})", $phone);
+            $this->notifyAdmins($phone, $result['flag_reason'] ?? 'ai_uncertain', $message);
+            return response()->json(['status' => 'flagged_uncertain']);
+        }
+
+        // ── STEP 10: Save reply & send ────────────────────────
+        $reply = $result['reply'];
+        $this->memory->saveMessage($phone, $jid, 'assistant', $reply);
+        $this->bot->sendReply($jid, $reply);
+
+        ActivityLog::record('ai_reply', "AI reply sent to {$phone}", $phone, [
+            'preview' => substr($reply, 0, 80),
+        ]);
+
+        // ── STEP 11: Background: update user summary every 10 msgs
+        $msgCount = Message::where('phone', $phone)->count();
+        if ($msgCount > 0 && $msgCount % 10 === 0) {
+            $history = $this->memory->getShortTermMemory($phone, 20);
+            $summary = $this->ai->generateUserSummary($phone, $history);
+            if ($summary) {
+                $this->memory->updateUserSummary($phone, $summary);
+            }
+        }
+
+        return response()->json(['status' => 'ok', 'reply' => substr($reply, 0, 60) . '...']);
+    }
+
+    private function notifyAdmins(string $phone, string $reason, string $message): void
+    {
+        $adminsRaw = \App\Models\BotSetting::get('admin_phones', '');
+        if (!$adminsRaw) return;
+
+        $admins = array_map('trim', explode(',', $adminsRaw));
+        $alertText = "🚨 *HOT LEAD ALERT* 🚨\n"
+                   . "Phone: +{$phone}\n"
+                   . "Trigger: \"{$reason}\"\n"
+                   . "Message: \"{$message}\"\n\n"
+                   . "Action: AI has paused. Please reply to them manually now.";
+
+        foreach ($admins as $adminPhone) {
+            if ($adminPhone) {
+                $adminJid = "{$adminPhone}@s.whatsapp.net";
+                $this->bot->sendReply($adminJid, $alertText, true);
+            }
+        }
+    }
+
+    // ── POST /api/whatsapp/status (from Node bot) ─────────────
+    public function statusUpdate(Request $request): JsonResponse
+    {
+        if ($request->header('X-Bot-Secret') !== env('SHARED_SECRET', 'whatsapp_ai_secret_2026')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $status = $request->string('status')->toString();
+        \App\Models\WhatsappStatus::updateStatus($status);
+        ActivityLog::record('status_change', "WhatsApp status changed to: {$status}");
+
+        return response()->json(['ok' => true]);
+    }
+}
