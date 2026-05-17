@@ -4,7 +4,9 @@ echo "🚀 Starting Deployment..."
 
 # 1. Update system & install prerequisites
 sudo apt update
-sudo apt install -y nginx curl git unzip
+sudo apt install -y nginx curl git unzip software-properties-common
+sudo add-apt-repository -y ppa:ondrej/php
+sudo apt update
 sudo apt install -y php8.2-fpm php8.2-cli php8.2-mysql php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
