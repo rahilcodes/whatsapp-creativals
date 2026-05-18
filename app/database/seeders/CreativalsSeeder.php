@@ -154,6 +154,8 @@ GOLDEN RULES:
 - The goal is never to close on WhatsApp. The goal is to make them want to talk to you.",
 
             'human_trigger_keywords' => 'speak to human,talk to a person,real person,actual person,not a bot,are you a bot,are you human,talk to someone,connect me to,get me someone',
+            'working_hours_start'    => '00:00',
+            'working_hours_end'      => '23:59',
             'delay_min' => '5',
             'delay_max' => '18',
             'outside_hours_message' => "Hey, thanks for reaching out. We're away from the desk right now but I'll get back to you first thing. Feel free to share what's on your mind and I'll pick it up when I'm back.",
