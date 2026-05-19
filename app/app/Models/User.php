@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +12,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    use HasTenant;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
@@ -22,6 +26,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
     ];
 
     /**

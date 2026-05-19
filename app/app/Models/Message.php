@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
+    use HasTenant;
+
     protected $fillable = [
         'wa_message_id',
         'jid',
@@ -34,7 +38,7 @@ class Message extends Model
     // ── Check if a message ID already exists (dedup) ──────────
     public static function isDuplicate(string $waMessageId): bool
     {
-        return static::where('wa_message_id', $waMessageId)->exists();
+        return static::withoutGlobalScope('tenant')->where('wa_message_id', $waMessageId)->exists();
     }
 
     // ── Get conversations list (last message per phone) ───────

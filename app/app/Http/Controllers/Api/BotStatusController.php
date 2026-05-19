@@ -24,13 +24,40 @@ class BotStatusController extends Controller
             'wa_status'       => $wa->status,
             'wa_connected'    => $wa->isConnected(),
             'qr_available'    => !empty($wa->qr_code),
-            'bot_enabled'     => BotSetting::get('bot_enabled') === '1',
+            'bot_enabled'     => BotSetting::get('bot_enabled', '1') === '1',
             'node_running'    => $nodeUp,
             'last_connected'  => $wa->last_connected_at?->toIso8601String(),
             'working_hours'   => [
                 'start' => BotSetting::get('working_hours_start', '09:00'),
                 'end'   => BotSetting::get('working_hours_end', '21:00'),
             ],
+        ]);
+    }
+
+    // ── GET /api/bot/health ───────────────────────────────────
+    public function health(): JsonResponse
+    {
+        $wa = WhatsappStatus::current();
+        $nodeHealth = $this->bot->getSessionHealth();
+
+        // Calculate message success rate for last 100 messages
+        $lastMessages = \App\Models\Message::where('role', 'assistant')
+            ->latest()
+            ->take(100)
+            ->get();
+            
+        $total = $lastMessages->count();
+        $success = $lastMessages->where('delivery_status', 'sent')->count();
+        $successRate = $total > 0 ? round(($success / $total) * 100) : 100;
+
+        return response()->json([
+            'health_score'    => $wa->health_score ?? 100,
+            'session_state'   => $wa->session_state ?? 'idle',
+            'reconnect_count' => $wa->reconnect_count ?? 0,
+            'ban_risk'        => $wa->isBanRisk(),
+            'uptime_seconds'  => $nodeHealth['uptime_seconds'] ?? 0,
+            'last_seen'       => $wa->updated_at?->diffForHumans() ?? 'Never',
+            'success_rate'    => $successRate,
         ]);
     }
 
@@ -86,45 +113,17 @@ class BotStatusController extends Controller
         return response()->json(['resumed' => true]);
     }
 
-    // ── POST /api/bot/start — spawn Node.js in background ────
+    // ── POST /api/bot/start — Start session for current tenant ─
     public function startEngine(): JsonResponse
     {
-        // Already running? Force a reconnect so it clears old session and makes a new QR
-        if ($this->bot->isNodeRunning()) {
-            $this->bot->reconnect();
-            return response()->json(['status' => 'already_running', 'message' => 'Triggered reconnect']);
-        }
+        $tenantId = app()->has('tenant_id') ? (int) app('tenant_id') : 1;
 
-        // Resolve absolute path to the bot directory (one level up from /app)
-        $botDir  = realpath(base_path('../bot'));
-        $logFile = $botDir . DIRECTORY_SEPARATOR . 'bot.log';
+        // Always call startSession for this tenant specifically.
+        // Node.js will create a new isolated session for this tenantId.
+        $success = $this->bot->startSession($tenantId);
 
-        if (!$botDir || !is_dir($botDir)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Bot directory not found at: ' . base_path('../bot'),
-            ], 500);
-        }
+        ActivityLog::record('status_change', "WhatsApp engine start requested for Tenant {$tenantId}");
 
-        if (PHP_OS_FAMILY === 'Windows') {
-            // WScript.Shell: the only reliable way to detach from PHP/web-server context.
-            // VBS strings use "" (doubled) for literal quotes — not backslash escapes.
-            $botEsc = str_replace('/', '\\', $botDir);
-
-            $vbs  = "Set ws = CreateObject(\"WScript.Shell\")\r\n";
-            $vbs .= "ws.CurrentDirectory = \"{$botEsc}\"\r\n";
-            $vbs .= "ws.Run \"node src\\index.js\", 0, False\r\n";
-
-            $vbsPath = sys_get_temp_dir() . '\\start_wa_bot.vbs';
-            file_put_contents($vbsPath, $vbs);
-            exec("wscript.exe \"{$vbsPath}\"");
-        } else {
-            $cmd = "cd \"{$botDir}\" && nohup node src/index.js >> \"{$logFile}\" 2>&1 &";
-            exec($cmd);
-        }
-
-        ActivityLog::record('status_change', 'WhatsApp engine started from dashboard');
-
-        return response()->json(['status' => 'starting']);
+        return response()->json(['status' => $success ? 'starting' : 'error', 'tenant_id' => $tenantId]);
     }
 }

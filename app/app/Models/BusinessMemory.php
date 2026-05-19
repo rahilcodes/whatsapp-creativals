@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class BusinessMemory extends Model
 {
+    use HasTenant;
+
     protected $table = 'business_memories';
 
     protected $fillable = ['category', 'key', 'value', 'active'];

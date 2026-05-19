@@ -30,41 +30,83 @@
     {{-- ── LEFT COL: Status + QR ─────────────────────────────── --}}
     <div class="col-span-2 space-y-5">
 
-        {{-- WhatsApp Status Card --}}
+        {{-- ── FAILSAFE BANNER ────────────────────────────────────────── --}}
+        <div id="failsafe-banner" class="hidden mb-5 p-4 rounded-xl flex items-center justify-between" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div>
+                    <h3 id="failsafe-title" class="text-red-400 font-bold text-sm">Session Disconnected</h3>
+                    <p id="failsafe-msg" class="text-red-300 text-xs mt-0.5">Automated replies are paused to prevent bans.</p>
+                </div>
+            </div>
+            <button onclick="reconnectWA(event)" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg transition-colors">
+                Reconnect Now
+            </button>
+        </div>
+
+        {{-- WhatsApp Status & Health Card --}}
         <div class="card p-6">
             <div class="flex items-center justify-between mb-5">
-                <h2 class="font-semibold text-white">WhatsApp Connection</h2>
+                <div class="flex items-center gap-3">
+                    <h2 class="font-semibold text-white">Device Health</h2>
+                    <div id="health-badge" class="hidden px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-500/20 text-red-400 border border-red-500/30">
+                        Ban Risk
+                    </div>
+                </div>
                 <div id="wa-main-status" class="flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold
                     {{ $waStatus->isConnected() ? 'text-emerald-400' : ($waStatus->status === 'connecting' ? 'text-amber-400' : 'text-red-400') }}"
                     style="background:{{ $waStatus->isConnected() ? 'rgba(16,185,129,0.1)' : ($waStatus->status === 'connecting' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)') }};">
                     <div class="w-2 h-2 rounded-full {{ $waStatus->isConnected() ? 'bg-emerald-400 pulse-dot' : ($waStatus->status === 'connecting' ? 'bg-amber-400 pulse-dot' : 'bg-red-500') }}"></div>
-                    {{ ucfirst($waStatus->status) }}
+                    <span id="wa-status-text">{{ ucfirst($waStatus->status) }}</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-5">
+                <!-- Health Score Ring -->
+                <div class="flex flex-col items-center justify-center p-4 rounded-xl" style="background:rgba(255,255,255,0.02);">
+                    <div class="relative w-16 h-16 flex items-center justify-center mb-2">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-slate-700" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="health-ring" class="text-emerald-500 transition-all duration-1000" stroke-dasharray="100, 100" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center flex-col">
+                            <span id="health-score-val" class="text-lg font-bold text-white">{{ $waStatus->health_score ?? 100 }}</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Health Score</span>
+                </div>
+
+                <!-- Message Delivery -->
+                <div class="flex flex-col justify-center p-4 rounded-xl" style="background:rgba(255,255,255,0.02);">
+                    <div class="text-slate-400 text-xs mb-1">Delivery Success</div>
+                    <div class="flex items-baseline gap-1">
+                        <span id="delivery-rate-val" class="text-2xl font-bold text-white">--</span>
+                        <span class="text-sm text-slate-500">%</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Last 100 messages</div>
+                </div>
+
+                <!-- Reconnects -->
+                <div class="flex flex-col justify-center p-4 rounded-xl" style="background:rgba(255,255,255,0.02);">
+                    <div class="text-slate-400 text-xs mb-1">Session Drops</div>
+                    <div class="flex items-baseline gap-1">
+                        <span id="reconnects-val" class="text-2xl font-bold text-white">{{ $waStatus->reconnect_count ?? 0 }}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mt-1">Total reconnects</div>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 text-sm">
                 <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
-                    <div class="text-slate-500 text-xs mb-1">Node.js Bot</div>
-                    <div class="{{ $nodeRunning ? 'text-emerald-400' : 'text-red-400' }} font-medium">
+                    <div class="text-slate-500 text-xs mb-1">Node.js Engine</div>
+                    <div class="{{ $nodeRunning ? 'text-emerald-400' : 'text-red-400' }} font-medium text-xs">
                         {{ $nodeRunning ? '● Running' : '● Offline' }}
                     </div>
                 </div>
                 <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
                     <div class="text-slate-500 text-xs mb-1">Last Connected</div>
-                    <div class="text-white font-medium text-xs">
+                    <div id="last-seen-val" class="text-white font-medium text-xs truncate">
                         {{ $waStatus->last_connected_at ? $waStatus->last_connected_at->diffForHumans() : 'Never' }}
-                    </div>
-                </div>
-                <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
-                    <div class="text-slate-500 text-xs mb-1">Working Hours</div>
-                    <div class="text-white font-medium">
-                        {{ $settings['working_hours_start'] ?? '09:00' }} – {{ $settings['working_hours_end'] ?? '21:00' }}
-                    </div>
-                </div>
-                <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
-                    <div class="text-slate-500 text-xs mb-1">Reply Delay</div>
-                    <div class="text-white font-medium">
-                        {{ $settings['delay_min'] ?? 3 }}–{{ $settings['delay_max'] ?? 15 }}s
                     </div>
                 </div>
             </div>
@@ -77,10 +119,6 @@
                 <button onclick="resumeBot()"
                     class="flex items-center justify-center flex-1 py-2 rounded-lg text-sm font-medium border border-slate-700 text-slate-300 hover:border-emerald-500 hover:text-emerald-400 transition-all">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Resume Bot
-                </button>
-                <button onclick="reconnectWA()"
-                    class="flex items-center justify-center flex-1 py-2 rounded-lg text-sm font-medium btn-primary text-white">
-                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Reconnect
                 </button>
             </div>
         </div>
@@ -165,28 +203,52 @@ async function pollQR() {
     try {
         const r = await fetch('/api/qr');
         const d = await r.json();
-        const qrCard  = document.getElementById('qr-card');
+        const qrCard    = document.getElementById('qr-card');
         const container = document.getElementById('qr-container');
 
         if (d.status === 'connected') {
+            // Truly connected — hide the QR card
             if (qrCard) qrCard.style.display = 'none';
         } else {
+            // Not connected — always show the QR card
             if (qrCard) qrCard.style.display = '';
+
             if (d.qr && container) {
-                // QR arrived — replace the whole container with the image
+                // QR image arrived — show it for scanning
                 container.innerHTML = `<img src="${d.qr}" alt="QR Code" class="w-56 h-56" />`;
+            } else if (!d.qr && container) {
+                // No QR — show the Generate QR button (only if not already showing)
+                if (!container.querySelector('#start-engine-btn')) {
+                    showGenerateQRPrompt(container);
+                }
             }
         }
     } catch(e) {}
 }
 
+function showGenerateQRPrompt(container) {
+    container.innerHTML = `
+        <div class="w-56 h-56 flex flex-col items-center justify-center gap-4" style="border:2px dashed #e2e8f0;border-radius:8px;">
+            <div id="qr-spinner" class="w-8 h-8 border-2 border-slate-300 border-t-emerald-500 rounded-full hidden animate-spin"></div>
+            <div id="qr-prompt" class="flex flex-col items-center gap-3">
+                <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75V16.5zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z"/></svg>
+                <button id="start-engine-btn" onclick="startEngine()"
+                    class="btn-primary px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"/></svg>
+                    Generate QR Code
+                </button>
+                <p class="text-slate-400 text-xs text-center">Click to connect WhatsApp</p>
+            </div>
+        </div>`;
+}
+
 async function pauseBot() {
     await fetch('/api/bot/pause', { method:'POST', headers:{ 'X-CSRF-TOKEN': CSRF } });
-    pollStatus();
+    pollHealth();
 }
 async function resumeBot() {
     await fetch('/api/bot/resume', { method:'POST', headers:{ 'X-CSRF-TOKEN': CSRF } });
-    pollStatus();
+    pollHealth();
 }
 
 pollQR();
@@ -228,6 +290,97 @@ async function pollActivity() {
         }).join('');
     } catch(e) {}
 }
+
+async function pollHealth() {
+    try {
+        const r = await fetch('/api/bot/health');
+        const d = await r.json();
+        
+        // Update Health Score
+        const scoreVal = document.getElementById('health-score-val');
+        const ring = document.getElementById('health-ring');
+        if (scoreVal) scoreVal.innerText = d.health_score;
+        if (ring) {
+            const dashArray = `${d.health_score}, 100`;
+            ring.setAttribute('stroke-dasharray', dashArray);
+            if (d.health_score > 70) ring.setAttribute('class', 'text-emerald-500 transition-all duration-1000');
+            else if (d.health_score > 40) ring.setAttribute('class', 'text-amber-500 transition-all duration-1000');
+            else ring.setAttribute('class', 'text-red-500 transition-all duration-1000');
+        }
+
+        // Update Reconnects and Delivery Rate
+        const reconnectsVal = document.getElementById('reconnects-val');
+        if (reconnectsVal) reconnectsVal.innerText = d.reconnect_count;
+        
+        const deliveryVal = document.getElementById('delivery-rate-val');
+        if (deliveryVal) deliveryVal.innerText = d.success_rate;
+        
+        const lastSeen = document.getElementById('last-seen-val');
+        if (lastSeen) lastSeen.innerText = d.last_seen;
+
+        // Failsafe Banner & Ban Risk
+        const banner = document.getElementById('failsafe-banner');
+        const badge  = document.getElementById('health-badge');
+        const title  = document.getElementById('failsafe-title');
+        const msg    = document.getElementById('failsafe-msg');
+
+        const notConnected = ['disconnected','reconnecting','paused','logged_out','idle'].includes(d.session_state);
+
+        if (d.ban_risk) {
+            if (badge)  badge.classList.remove('hidden');
+            if (banner) {
+                banner.classList.remove('hidden');
+                title.innerText = 'Ban Risk Detected';
+                msg.innerText   = 'Automation has been paused to protect your number. Manual reconnect required.';
+            }
+        } else if (notConnected) {
+            if (badge)  badge.classList.add('hidden');
+            if (banner) {
+                if (d.session_state === 'paused' || d.session_state === 'logged_out') {
+                    banner.classList.remove('hidden');
+                    title.innerText = d.session_state === 'logged_out' ? 'WhatsApp Logged Out' : 'Session Paused';
+                    msg.innerText   = 'Please click Generate QR Code below to reconnect.';
+                } else if (d.session_state === 'disconnected' || d.session_state === 'reconnecting') {
+                    banner.classList.remove('hidden');
+                    title.innerText = 'Session Disconnected';
+                    msg.innerText   = 'Automated replies are paused. Reconnecting...';
+                } else {
+                    banner.classList.add('hidden');
+                }
+            }
+        } else {
+            if (badge)  badge.classList.add('hidden');
+            if (banner) banner.classList.add('hidden');
+        }
+
+        // Main Status Badge Update
+        const waStatusText = document.getElementById('wa-status-text');
+        const waMainStatus = document.getElementById('wa-main-status');
+        if (waStatusText) waStatusText.innerText = d.session_state.charAt(0).toUpperCase() + d.session_state.slice(1);
+        
+        if (waMainStatus) {
+            waMainStatus.className = 'flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold';
+            const dot = waMainStatus.querySelector('div');
+            
+            if (d.session_state === 'connected') {
+                waMainStatus.classList.add('text-emerald-400');
+                waMainStatus.style.background = 'rgba(16,185,129,0.1)';
+                if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-400 pulse-dot';
+            } else if (d.session_state === 'connecting' || d.session_state === 'reconnecting') {
+                waMainStatus.classList.add('text-amber-400');
+                waMainStatus.style.background = 'rgba(245,158,11,0.1)';
+                if (dot) dot.className = 'w-2 h-2 rounded-full bg-amber-400 pulse-dot';
+            } else {
+                waMainStatus.classList.add('text-red-400');
+                waMainStatus.style.background = 'rgba(239,68,68,0.1)';
+                if (dot) dot.className = 'w-2 h-2 rounded-full bg-red-500';
+            }
+        }
+    } catch(e) {}
+}
+
+pollHealth();
+setInterval(pollHealth, 5000);
 
 pollActivity();
 setInterval(pollActivity, 5000);

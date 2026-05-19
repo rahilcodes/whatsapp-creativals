@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class FlaggedConversation extends Model
 {
+    use HasTenant;
+
     protected $fillable = ['phone', 'reason', 'status', 'last_message', 'human_takeover'];
 
     protected $casts = ['human_takeover' => 'boolean'];

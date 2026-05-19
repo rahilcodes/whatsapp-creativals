@@ -14,6 +14,8 @@ class DashboardController extends Controller
 
     public function index()
     {
+        \Illuminate\Support\Facades\Log::info('DashboardController: user_id=' . (\Illuminate\Support\Facades\Auth::id() ?? 'null') . ', tenant_id=' . app('tenant_id'));
+
         $waStatus    = WhatsappStatus::current();
         $botEnabled  = BotSetting::get('bot_enabled') === '1';
         $nodeRunning = $this->bot->isNodeRunning();

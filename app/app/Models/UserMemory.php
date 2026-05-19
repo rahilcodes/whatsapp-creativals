@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class UserMemory extends Model
 {
+    use HasTenant;
+
     protected $table = 'user_memories';
 
     protected $fillable = ['phone', 'summary', 'last_activity_at'];

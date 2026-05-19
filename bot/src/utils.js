@@ -57,7 +57,7 @@ export function extractText(msg) {
  * Normalize a JID to a plain phone number.
  */
 export function jidToPhone(jid) {
-  return jid?.replace(/@s\.whatsapp\.net$/, '').replace(/@g\.us$/, '') || '';
+  return jid?.replace(/@s\.whatsapp\.net$/, '').replace(/@g\.us$/, '').replace(/@lid$/, '') || '';
 }
 
 /**

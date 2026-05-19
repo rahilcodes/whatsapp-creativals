@@ -31,6 +31,10 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Resolve tenant from Node.js header — CRITICAL for data isolation
+        $tenantId = (int) ($request->header('X-Tenant-ID') ?? 1);
+        app()->instance('tenant_id', $tenantId);
+
         $phone     = $request->string('phone')->toString();
         $jid       = $request->string('jid')->toString();
         $message   = $request->string('message')->toString();
@@ -51,7 +55,11 @@ class WhatsAppWebhookController extends Controller
         ]);
 
         // ── STEP 2: Save incoming user message ────────────────
-        $this->memory->saveMessage($phone, $jid, 'user', $message, $messageId);
+        try {
+            $this->memory->saveMessage($phone, $jid, 'user', $message, $messageId);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            return response()->json(['status' => 'duplicate_ignored']);
+        }
         $this->memory->touchActivity($phone);
 
         // ── STEP 3: Human takeover active → skip AI ──────────
@@ -65,11 +73,22 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['status' => 'bot_disabled']);
         }
 
+        // ── STEP 4.5: Failsafe / Ban Risk Check ───────────────
+        $wa = \App\Models\WhatsappStatus::current();
+        if ($wa->isBanRisk()) {
+            $fallback = "We are currently experiencing high volume. Our team will get back to you shortly.";
+            $savedFallback = $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
+            // Enqueue the fallback message. It will sit in the queue until the session is manually reconnected.
+            $this->bot->sendReply($jid, $fallback, false, $savedFallback->id);
+            ActivityLog::record('safety_block', "Ban risk active — AI skipped, fallback enqueued", $phone);
+            return response()->json(['status' => 'ban_risk_paused']);
+        }
+
         // ── STEP 5: Working hours? ────────────────────────────
         if (!$this->safety->isWithinWorkingHours()) {
             $fallback = $this->safety->outsideHoursMessage();
-            $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
-            $this->bot->sendReply($jid, $fallback);
+            $savedFallback = $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
+            $this->bot->sendReply($jid, $fallback, false, $savedFallback->id);
             ActivityLog::record('safety_block', "Outside working hours — fallback sent", $phone);
             return response()->json(['status' => 'outside_hours']);
         }
@@ -116,8 +135,8 @@ class WhatsAppWebhookController extends Controller
 
         // ── STEP 10: Save reply & send ────────────────────────
         $reply = $result['reply'];
-        $this->memory->saveMessage($phone, $jid, 'assistant', $reply);
-        $this->bot->sendReply($jid, $reply);
+        $savedMessage = $this->memory->saveMessage($phone, $jid, 'assistant', $reply);
+        $this->bot->sendReply($jid, $reply, false, $savedMessage->id);
 
         ActivityLog::record('ai_reply', "AI reply sent to {$phone}", $phone, [
             'preview' => substr($reply, 0, 80),
@@ -163,9 +182,15 @@ class WhatsAppWebhookController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Resolve tenant from Node.js header — CRITICAL for data isolation
+        $tenantId = (int) ($request->header('X-Tenant-ID') ?? 1);
+        app()->instance('tenant_id', $tenantId);
+
         $status = $request->string('status')->toString();
-        \App\Models\WhatsappStatus::updateStatus($status);
-        ActivityLog::record('status_change', "WhatsApp status changed to: {$status}");
+        \App\Models\WhatsappStatus::updateStatus($status, $request->all());
+        
+        $reason = $request->input('session_state') === 'banned_risk' ? 'ban risk detected' : 'status changed';
+        ActivityLog::record('status_change', "WhatsApp status changed to: {$status} ({$reason})");
 
         return response()->json(['ok' => true]);
     }

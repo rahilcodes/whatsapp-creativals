@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -125,10 +126,32 @@
             </button>
         </div>
         <button onclick="reconnectWA(event)"
-            class="w-full flex items-center justify-center text-xs py-2 rounded-lg text-slate-400 border border-slate-700 hover:border-brand-500 hover:text-brand-400 transition-all">
+            class="w-full flex items-center justify-center text-xs py-2 rounded-lg text-slate-400 border border-slate-700 hover:border-brand-500 hover:text-brand-400 transition-all mb-3">
             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
             <span>Reconnect WhatsApp</span>
         </button>
+    </div>
+
+    {{-- User Profile + Logout --}}
+    <div class="p-4 border-t" style="border-color:rgba(255,255,255,0.05);">
+        <div class="flex items-center gap-3 mb-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                 style="background:linear-gradient(135deg,#059669,#10b981);">
+                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="text-xs font-semibold text-slate-300 truncate">{{ Auth::user()->name }}</div>
+                <div class="text-[10px] text-slate-600 truncate">{{ Auth::user()->email }}</div>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"
+                class="w-full flex items-center justify-center gap-2 text-xs py-2 rounded-lg text-slate-400 border border-slate-700 hover:border-red-500 hover:text-red-400 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                Sign Out
+            </button>
+        </form>
     </div>
 </aside>
 
@@ -148,6 +171,39 @@
                 <span class="text-slate-400">Checking...</span>
             </div>
             <div class="text-xs text-slate-500" id="last-updated">--</div>
+            {{-- User Avatar Dropdown --}}
+            <div class="relative pl-3 border-l border-slate-700" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center gap-2 focus:outline-none">
+                    <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                         style="background:linear-gradient(135deg,#059669,#10b981);">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                    <div class="hidden sm:block text-left">
+                        <div class="text-xs font-medium text-slate-300">{{ Auth::user()->name }}</div>
+                        <div class="text-[10px] text-slate-500">{{ Auth::user()->email }}</div>
+                    </div>
+                    <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div x-show="open" @click.away="open = false"
+                     class="absolute right-0 top-10 w-48 rounded-xl py-1 z-50"
+                     style="background:#0d1627;border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.5);"
+                     x-transition>
+                    <a href="{{ route('profile.edit') }}"
+                       class="flex items-center gap-2 px-4 py-2.5 text-xs text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Profile Settings
+                    </a>
+                    <div style="height:1px;background:rgba(255,255,255,0.06);margin:0.25rem 0;"></div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                            class="w-full flex items-center gap-2 px-4 py-2.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            Sign Out
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </header>
 

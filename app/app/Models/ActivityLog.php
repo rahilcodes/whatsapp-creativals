@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Traits\HasTenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class ActivityLog extends Model
 {
+    use HasTenant;
+
     protected $fillable = ['type', 'phone', 'description', 'meta'];
 
     protected $casts = ['meta' => 'array'];
