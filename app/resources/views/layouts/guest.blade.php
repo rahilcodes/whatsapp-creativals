@@ -80,17 +80,36 @@
 
             {{-- Feature bullets --}}
             <div class="space-y-5">
-                @foreach([
-                    ['⚡', 'Instant Setup', 'Live in under 60 seconds with a QR scan'],
-                    ['🤖', 'AI Auto-Replies', 'GPT-4 replies that understand your business'],
-                    ['🛡️', 'Anti-Ban Safety', 'Smart protection for your WhatsApp number'],
-                    ['📊', 'Live Analytics', 'Real-time dashboard to monitor everything'],
-                ] as $f)
+                @php
+                $features = [
+                    [
+                        'icon' => '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+                        'title' => 'Instant Setup',
+                        'desc' => 'Live in under 60 seconds with a QR scan',
+                    ],
+                    [
+                        'icon' => '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M9 11V7a3 3 0 016 0v4"/><circle cx="12" cy="16" r="1" fill="#10b981"/></svg>',
+                        'title' => 'AI Auto-Replies',
+                        'desc' => 'GPT-4 replies that understand your business',
+                    ],
+                    [
+                        'icon' => '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+                        'title' => 'Anti-Ban Safety',
+                        'desc' => 'Smart protection for your WhatsApp number',
+                    ],
+                    [
+                        'icon' => '<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>',
+                        'title' => 'Live Analytics',
+                        'desc' => 'Real-time dashboard to monitor everything',
+                    ],
+                ];
+                @endphp
+                @foreach($features as $f)
                 <div class="feature-item">
-                    <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);">{{ $f[0] }}</div>
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);">{!! $f['icon'] !!}</div>
                     <div>
-                        <div class="text-white text-sm font-semibold">{{ $f[1] }}</div>
-                        <div class="text-slate-500 text-xs">{{ $f[2] }}</div>
+                        <div class="text-white text-sm font-semibold">{{ $f['title'] }}</div>
+                        <div class="text-slate-500 text-xs">{{ $f['desc'] }}</div>
                     </div>
                 </div>
                 @endforeach
