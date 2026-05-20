@@ -144,6 +144,7 @@
         .cmsg {
             margin-bottom:7px;
             width:100%;
+            display:none;
             flex-direction:column;
         }
         .cmsg.user {
@@ -152,11 +153,68 @@
         .cmsg.bot {
             align-items:flex-start;
         }
-        .cbubble{display:inline-block;padding:7px 11px;border-radius:12px;font-size:11.5px;line-height:1.5;max-width:88%;}
-        .cmsg.user .cbubble{background:rgba(16,185,129,.18);border:1px solid rgba(16,185,129,.25);color:#1a2e1a;border-radius:12px 12px 3px 12px;}
-        .cmsg.bot .cbubble{background:#f1f5f9;border:1px solid rgba(0,0,0,0.07);color:#374151;border-radius:12px 12px 12px 3px;}
-        .dark .cmsg.user .cbubble{color:var(--text2);}
-        .dark .cmsg.bot .cbubble{background:var(--card2);border:1px solid var(--border);color:var(--text2);}
+        .cbubble {
+            display:flex;
+            flex-direction:column;
+            padding:9px 12px 6px;
+            border-radius:14px;
+            font-size:11.5px;
+            line-height:1.45;
+            max-width:88%;
+            box-sizing:border-box;
+        }
+        /* Light Mode User Bubble */
+        .cmsg.user .cbubble {
+            background:#f1f5f9;
+            border:1px solid #e2e8f0;
+            color:#0f172a;
+            border-radius:14px 14px 2px 14px;
+        }
+        /* Light Mode Bot Bubble */
+        .cmsg.bot .cbubble {
+            background:rgba(16,185,129,0.1);
+            border:1px solid rgba(16,185,129,0.2);
+            color:#065f46;
+            border-radius:14px 14px 14px 2px;
+        }
+        /* Dark Mode User Bubble */
+        .dark .cmsg.user .cbubble {
+            background:#1e293b;
+            border:1px solid #334155;
+            color:#f8fafc;
+        }
+        /* Dark Mode Bot Bubble */
+        .dark .cmsg.bot .cbubble {
+            background:rgba(16,185,129,0.15);
+            border:1px solid rgba(16,185,129,0.3);
+            color:#ecfdf5;
+        }
+        .c-text {
+            font-size:11.5px;
+            line-height:1.45;
+        }
+        .c-meta-user {
+            display:flex;
+            align-items:center;
+            justify-content:flex-end;
+            gap:3px;
+            font-size:9px;
+            color:#64748b;
+            margin-top:4px;
+        }
+        .dark .c-meta-user {
+            color:#94a3b8;
+        }
+        .c-meta-bot {
+            font-size:9px;
+            color:#059669;
+            margin-top:4px;
+            font-weight:600;
+            text-align:left;
+        }
+        .dark .c-meta-bot {
+            color:#10b981;
+        }
         .typing{display:flex;gap:3px;align-items:center;padding:7px 11px;background:#f1f5f9;border:1px solid rgba(0,0,0,0.07);border-radius:12px 12px 12px 3px;width:fit-content;}
         .dark .typing{background:var(--card2);border:1px solid var(--border);}
         .tdot{width:5px;height:5px;border-radius:50%;background:#94a3b8;animation:tdot 1.2s infinite;}
@@ -450,74 +508,170 @@
                         <div class="chat-area" id="chat-area" style="overflow:hidden;">
                             <!-- Convo 1: Timings -->
                             <div class="cmsg user" id="c1u" style="opacity:0;transition:opacity .35s">
-                                <div class="cbubble">Hi! What are your timings?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Hi! What are your timings?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:41 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c1t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c1b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Hello! Spice Garden is open Mon–Sat 11am–11pm & Sun 12pm–10pm. Dine-in, takeaway & delivery all available!</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Hello! Spice Garden is open Mon–Sat 11am–11pm & Sun 12pm–10pm. Dine-in, takeaway & delivery all available!</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:41 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 2: Home delivery -->
                             <div class="cmsg user" id="c2u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Do you do home delivery?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Do you do home delivery?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:42 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c2t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c2b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Yes! Free delivery within 5km on orders above ₹399. Delivered hot in 30–45 mins.</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Yes! Free delivery within 5km on orders above ₹399. Delivered hot in 30–45 mins.</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:42 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 3: Table booking -->
                             <div class="cmsg user" id="c3u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Can I book a table for 4 tonight?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Can I book a table for 4 tonight?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:43 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c3t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c3b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Absolutely! Table for 4 confirmed at 7:30 PM tonight. Name & contact please?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Absolutely! Table for 4 confirmed at 7:30 PM tonight. Name & contact please?</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:43 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 4: Menu -->
                             <div class="cmsg user" id="c4u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">What's your best dish?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">What's your best dish?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:44 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c4t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c4b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Our Chef's Special Butter Chicken (₹320) and Paneer Tikka Platter (₹280) are customer favourites!</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Our Chef's Special Butter Chicken (₹320) and Paneer Tikka Platter (₹280) are customer favourites!</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:44 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 5: Veg options -->
                             <div class="cmsg user" id="c5u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Do you have pure veg options?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Do you have pure veg options?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:45 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c5t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c5b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">We have 40+ pure veg dishes! Dal Makhani, Paneer dishes, Veg Biryani, and a dedicated Jain menu too.</div>
+                                <div class="cbubble">
+                                    <div class="c-text">We have 40+ pure veg dishes! Dal Makhani, Paneer dishes, Veg Biryani, and a dedicated Jain menu too.</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:45 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 6: Payment -->
                             <div class="cmsg user" id="c6u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Do you accept UPI?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Do you accept UPI?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:46 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c6t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c6b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Yes! UPI, cards, cash & wallets all accepted. Online orders get 10% cashback too!</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Yes! UPI, cards, cash & wallets all accepted. Online orders get 10% cashback too!</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:46 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 7: Complaint -->
                             <div class="cmsg user" id="c7u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">My order is taking too long...</div>
+                                <div class="cbubble">
+                                    <div class="c-text">My order is taking too long...</div>
+                                    <div class="c-meta-user">
+                                        <span>9:47 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c7t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c7b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">So sorry for the wait! I'm flagging this to our manager right now. Your order will arrive in 10 mins. We'll add a complimentary dessert!</div>
+                                <div class="cbubble">
+                                    <div class="c-text">So sorry for the wait! I'm flagging this to our manager right now. Your order will arrive in 10 mins. We'll add a complimentary dessert!</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:47 AM</div>
+                                </div>
                             </div>
 
                             <!-- Convo 8: Catering -->
                             <div class="cmsg user" id="c8u" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Do you offer catering for events?</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Do you offer catering for events?</div>
+                                    <div class="c-meta-user">
+                                        <span>9:48 AM</span>
+                                        <span style="display:flex;align-items:center;">
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;"><path d="M5 13l4 4L19 7"/></svg>
+                                            <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="display:block;margin-left:-6px;"><path d="M5 13l4 4L19 7"/></svg>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                             <div id="c8t" style="opacity:0;transition:opacity .35s;margin-top:6px"><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>
                             <div class="cmsg bot" id="c8b" style="opacity:0;transition:opacity .35s;margin-top:6px">
-                                <div class="cbubble">Yes! We cater weddings, corporate events & parties from 20 to 500 guests. Share your event date and we'll send a custom quote!</div>
+                                <div class="cbubble">
+                                    <div class="c-text">Yes! We cater weddings, corporate events & parties from 20 to 500 guests. Share your event date and we'll send a custom quote!</div>
+                                    <div class="c-meta-bot">Spice Garden · 9:48 AM</div>
+                                </div>
                             </div>
                         </div>
 
