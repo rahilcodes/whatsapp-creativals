@@ -28,7 +28,7 @@ class SendOtpMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->otpCode . ' is your ChatooAI verification code',
+            subject: $this->otpCode . ' is your iChatUp verification code',
         );
     }
 

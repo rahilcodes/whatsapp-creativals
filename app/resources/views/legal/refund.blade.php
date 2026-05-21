@@ -1,14 +1,14 @@
 <x-public-layout>
-    <x-slot name="title">Refund Policy - ChatooAI</x-slot>
+    <x-slot name="title">Refund Policy - iChatUp</x-slot>
 
     <h1 class="doc-title">Refund Policy</h1>
     <div class="doc-meta">Last updated: May 21, 2026 · 3 min read</div>
 
     <div class="doc-body">
-        <p>Thank you for choosing ChatooAI. We aim to provide high-quality services to automate and boost your WhatsApp support. Please read our refund rules carefully before purchasing a premium plan.</p>
+        <p>Thank you for choosing iChatUp. We aim to provide high-quality services to automate and boost your WhatsApp support. Please read our refund rules carefully before purchasing a premium plan.</p>
 
         <h2>1. Free Tier / Trial</h2>
-        <p>ChatooAI offers a free forever plan that allows you to connect a WhatsApp number and test all core capabilities with no credit card required. We encourage all customers to use the free tier to fully test compatibility and verify if the AI answers meet their business standard before upgrading to a paid subscription.</p>
+        <p>iChatUp offers a free forever plan that allows you to connect a WhatsApp number and test all core capabilities with no credit card required. We encourage all customers to use the free tier to fully test compatibility and verify if the AI answers meet their business standard before upgrading to a paid subscription.</p>
 
         <h2>2. Paid Subscriptions</h2>
         <p>Paid subscriptions (Monthly/Annual) grant access to higher limits, customized business memory tokens, and premium support. Paid plans are billed in advance on a recurring billing cycle.</p>
@@ -23,7 +23,7 @@
         </ul>
 
         <h2>4. How to Request a Refund</h2>
-        <p>To request a refund, please send an email to <a href="mailto:billing@chatooai.com" style="color:var(--brand2);text-decoration:underline;">billing@chatooai.com</a> with the following details:</p>
+        <p>To request a refund, please send an email to <a href="mailto:billing@ichatup.com" style="color:var(--brand2);text-decoration:underline;">billing@ichatup.com</a> with the following details:</p>
         <ul>
             <li>Your account email address.</li>
             <li>Workspace name.</li>

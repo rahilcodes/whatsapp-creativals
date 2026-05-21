@@ -162,7 +162,7 @@ export async function startWhatsApp(tenantId = 1, force = false) {
     },
     logger,
     generateHighQualityLinkPreview: false,
-    browser: ['ChatooAI', 'Chrome', '120.0'],
+    browser: ['iChatUp', 'Chrome', '120.0'],
     getMessage: async () => undefined,
   });
 

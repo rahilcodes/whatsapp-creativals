@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ChatooAI — WhatsApp AI Bot. Live in 2 Minutes.</title>
+    <title>iChatUp — WhatsApp AI Bot. Live in 2 Minutes.</title>
     <meta name="description" content="Connect AI to your WhatsApp in 2 minutes. No API. No WhatsApp deletion. Unlimited messages. Pre-built business memory. Start free today." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -375,7 +375,7 @@
             <div class="logo-icon">
                 <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
             </div>
-            <span class="logo-text">ChatooAI</span>
+            <span class="logo-text">iChatUp</span>
         </a>
         <div class="nav-links">
             <a href="#how-it-works">How it works</a>
@@ -719,7 +719,7 @@
         <div style="text-align:center;margin-bottom:56px;">
             <span class="pill"><span class="dot"></span>How It Works</span>
             <h2 style="font-size:clamp(28px,3vw,38px);font-weight:800;margin-top:14px;color:var(--text);">Live in 3 simple steps</h2>
-            <p style="color:var(--text3);margin-top:10px;font-size:15px;">Setting up ChatooAI takes less than 2 minutes. No coding required.</p>
+            <p style="color:var(--text3);margin-top:10px;font-size:15px;">Setting up iChatUp takes less than 2 minutes. No coding required.</p>
         </div>
         <div class="steps-grid">
             <div class="steps-list">
@@ -806,7 +806,7 @@
             <div class="bcard wide">
                 <div class="bicon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M9 11V7a3 3 0 016 0v4"/><circle cx="12" cy="16" r="1" fill="#10b981"/><path d="M8 11V8"/><path d="M16 11V8"/></svg></div>
                 <h3 class="btitle">AI Auto-Replies (GPT-4o)</h3>
-                <p class="bdesc">ChatooAI uses advanced GPT-4o models trained on your specific business rules to handle general customer inquiries, FAQs, and bookings flawlessly — with a human-like 3 to 15s delayed reply pattern that prevents bans.</p>
+                <p class="bdesc">iChatUp uses advanced GPT-4o models trained on your specific business rules to handle general customer inquiries, FAQs, and bookings flawlessly — with a human-like 3 to 15s delayed reply pattern that prevents bans.</p>
             </div>
             <!-- Card 2: Pre-Built Memory -->
             <div class="bcard">
@@ -824,13 +824,13 @@
             <div class="bcard wide">
                 <div class="bicon"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
                 <h3 class="btitle">No Official API Needed</h3>
-                <p class="bdesc" style="margin-bottom:14px;">Forget about complex developer account applications, expensive setup fees, and waiting weeks for Meta's approval. ChatooAI connects directly via WhatsApp Web socket.</p>
+                <p class="bdesc" style="margin-bottom:14px;">Forget about complex developer account applications, expensive setup fees, and waiting weeks for Meta's approval. iChatUp connects directly via WhatsApp Web socket.</p>
                 <table class="vs-tbl">
                     <thead>
                         <tr>
                             <th>Feature</th>
                             <th>Official API</th>
-                            <th style="color:var(--brand2);">ChatooAI</th>
+                            <th style="color:var(--brand2);">iChatUp</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -878,7 +878,7 @@
         <!-- Review 1 -->
         <div class="tcard">
             <div class="tstars">★★★★★</div>
-            <p class="ttext">"ChatooAI has completely changed how we handle reservations. We get bookings 24/7 even while we're closed."</p>
+            <p class="ttext">"iChatUp has completely changed how we handle reservations. We get bookings 24/7 even while we're closed."</p>
             <div class="tauthor">
                 <div class="tav" style="background:#059669;">R</div>
                 <div>
@@ -926,7 +926,7 @@
         <!-- Review 5 -->
         <div class="tcard">
             <div class="tstars">★★★★★</div>
-            <p class="ttext">"ChatooAI has completely changed how we handle reservations. We get bookings 24/7 even while we're closed."</p>
+            <p class="ttext">"iChatUp has completely changed how we handle reservations. We get bookings 24/7 even while we're closed."</p>
             <div class="tauthor">
                 <div class="tav" style="background:#059669;">R</div>
                 <div>
@@ -1039,23 +1039,23 @@
         <div style="text-align:center;margin-bottom:28px;">
             <span class="pill"><span class="dot"></span>F.A.Q</span>
             <h2 style="font-size:clamp(28px,3vw,38px);font-weight:800;margin-top:14px;color:var(--text);">Frequently Asked Questions</h2>
-            <p style="color:var(--text3);margin-top:10px;font-size:15px;">Everything you need to know about ChatooAI.</p>
+            <p style="color:var(--text3);margin-top:10px;font-size:15px;">Everything you need to know about iChatUp.</p>
         </div>
         <div class="faq-list">
             <!-- FAQ 1 -->
             <div class="fitem">
                 <div class="fq" onclick="toggleFaq(this)">Do I need to delete my existing WhatsApp? <span class="ficon">+</span></div>
-                <div class="fa">No! You do not need to delete anything. ChatooAI connects directly to your existing WhatsApp number (Personal or Business) through a simple secure QR code scan, similar to WhatsApp Web. Your conversations stay intact.</div>
+                <div class="fa">No! You do not need to delete anything. iChatUp connects directly to your existing WhatsApp number (Personal or Business) through a simple secure QR code scan, similar to WhatsApp Web. Your conversations stay intact.</div>
             </div>
             <!-- FAQ 2 -->
             <div class="fitem">
                 <div class="fq" onclick="toggleFaq(this)">Will my WhatsApp number get banned? <span class="ficon">+</span></div>
-                <div class="fa">We take safety very seriously. ChatooAI has built-in anti-ban filters, including randomized typing delays and message intervals that closely mimic natural human chat patterns, keeping your account fully safe.</div>
+                <div class="fa">We take safety very seriously. iChatUp has built-in anti-ban filters, including randomized typing delays and message intervals that closely mimic natural human chat patterns, keeping your account fully safe.</div>
             </div>
             <!-- FAQ 3 -->
             <div class="fitem">
                 <div class="fq" onclick="toggleFaq(this)">How is this different from WhatsApp Business API? <span class="ficon">+</span></div>
-                <div class="fa">The official API requires expensive setup costs, Meta account approvals, and charges you for every single message conversation. ChatooAI connects in 2 minutes with zero setup fees and lets you send unlimited messages under a simple flat subscription fee.</div>
+                <div class="fa">The official API requires expensive setup costs, Meta account approvals, and charges you for every single message conversation. iChatUp connects in 2 minutes with zero setup fees and lets you send unlimited messages under a simple flat subscription fee.</div>
             </div>
             <!-- FAQ 4 -->
             <div class="fitem">
@@ -1097,7 +1097,7 @@
                     <div class="logo-icon">
                         <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
                     </div>
-                    <span class="logo-text">ChatooAI</span>
+                    <span class="logo-text">iChatUp</span>
                 </div>
                 <p>Advanced AI automation for WhatsApp. Connect in 2 minutes, automate 80% of support conversations.</p>
             </div>
@@ -1121,14 +1121,14 @@
             <div class="fcol">
                 <h4>Company</h4>
                 <ul>
-                    <li><a href="mailto:support@chatooai.com">Contact Support</a></li>
+                    <li><a href="mailto:support@ichatup.com">Contact Support</a></li>
                     <li><a href="#">Partner Program</a></li>
                     <li><a href="#">Documentation</a></li>
                 </ul>
             </div>
         </div>
         <div class="fbot">
-            <span>© {{ date('Y') }} ChatooAI. All rights reserved locally.</span>
+            <span>© {{ date('Y') }} iChatUp. All rights reserved locally.</span>
             <span style="display:flex;align-items:center;gap:5px;">Made with <svg width="14" height="14" fill="#ef4444" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> for modern businesses.</span>
         </div>
     </div>

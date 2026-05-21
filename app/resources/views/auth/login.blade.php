@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-8">
         <h2 class="text-2xl font-bold text-white mb-1">Welcome back</h2>
-        <p class="text-slate-500 text-sm">Sign in to your ChatooAI workspace</p>
+        <p class="text-slate-500 text-sm">Sign in to your iChatUp workspace</p>
     </div>
 
     <!-- Session Status -->

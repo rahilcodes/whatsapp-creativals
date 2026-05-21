@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email - ChatooAI</title>
+    <title>Verify Your Email - iChatUp</title>
     <style>
         body {
             background-color: #060d1a;
@@ -93,22 +93,22 @@
 <body>
     <div class="container">
         <div class="logo">
-            <span class="logo-icon">C</span>
-            <span class="logo-text">ChatooAI</span>
+            <span class="logo-icon">I</span>
+            <span class="logo-text">iChatUp</span>
         </div>
         <h1>Verify Your Email Address</h1>
-        <p>Thanks for signing up for ChatooAI! To complete your registration and create your workspace, please use the 6-digit verification code below:</p>
+        <p>Thanks for signing up for iChatUp! To complete your registration and create your workspace, please use the 6-digit verification code below:</p>
         
         <div class="otp-box">
             <h2 class="otp-code">{{ $otpCode }}</h2>
         </div>
         
         <p>This verification code is valid for <strong>15 minutes</strong>. If the code expires, you can request a new one from the verification screen.</p>
-        <p style="font-size: 13px; color: #475569;">If you did not create an account on ChatooAI, you can safely ignore this email.</p>
+        <p style="font-size: 13px; color: #475569;">If you did not create an account on iChatUp, you can safely ignore this email.</p>
         
         <div class="footer">
-            <p>© {{ date('Y') }} ChatooAI. All rights reserved.<br>
-            <a href="{{ config('app.url') }}">www.chatooai.com</a></p>
+            <p>© {{ date('Y') }} iChatUp. All rights reserved.<br>
+            <a href="{{ config('app.url') }}">www.ichatup.com</a></p>
         </div>
     </div>
 </body>
