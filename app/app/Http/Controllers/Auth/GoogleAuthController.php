@@ -44,9 +44,17 @@ class GoogleAuthController extends Controller
                     ->first();
 
         if ($user) {
-            // Update google_id if it was missing (e.g., they registered manually first, then logged in with Google)
+            // Update google_id or verify email if missing
+            $needsSave = false;
             if (! $user->google_id) {
                 $user->google_id = $googleUser->id;
+                $needsSave = true;
+            }
+            if (! $user->email_verified_at) {
+                $user->email_verified_at = now();
+                $needsSave = true;
+            }
+            if ($needsSave) {
                 $user->saveQuietly();
             }
         } else {
@@ -60,13 +68,14 @@ class GoogleAuthController extends Controller
             // Create the User record. We use a raw DB insert to fully bypass
             // the HasTenant scope and any auto-filling of tenant_id = 1.
             \Illuminate\Support\Facades\DB::table('users')->insert([
-                'name'       => $googleUser->name,
-                'email'      => $googleUser->email,
-                'google_id'  => $googleUser->id,
-                'password'   => null,
-                'tenant_id'  => $tenant->id,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'name'              => $googleUser->name,
+                'email'             => $googleUser->email,
+                'google_id'         => $googleUser->id,
+                'password'          => null,
+                'tenant_id'         => $tenant->id,
+                'email_verified_at' => now(), // Auto verify Google user
+                'created_at'        => now(),
+                'updated_at'        => now(),
             ]);
 
             // Retrieve the newly inserted user (without scope)

@@ -4,13 +4,13 @@ namespace App\Models;
 
 use App\Models\Traits\HasTenant;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasTenant;
 
@@ -27,6 +27,8 @@ class User extends Authenticatable
         'email',
         'password',
         'google_id',
+        'otp_code',
+        'otp_expires_at',
     ];
 
     /**
@@ -49,6 +51,15 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'otp_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Override the default email verification notification since we use OTP.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        // Handled manually via OTP email
     }
 }

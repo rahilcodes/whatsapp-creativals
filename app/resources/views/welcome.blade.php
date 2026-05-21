@@ -1113,9 +1113,9 @@
             <div class="fcol">
                 <h4>Security</h4>
                 <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Anti-Spam Policy</a></li>
+                    <li><a href="{{ route('privacy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ route('terms') }}">Terms of Service</a></li>
+                    <li><a href="{{ route('refunds') }}">Refund Policy</a></li>
                 </ul>
             </div>
             <div class="fcol">

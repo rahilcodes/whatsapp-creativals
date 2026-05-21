@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase
@@ -25,34 +24,48 @@ class EmailVerificationTest extends TestCase
     public function test_email_can_be_verified(): void
     {
         $user = User::factory()->unverified()->create();
+        $user->otp_code = '123456';
+        $user->otp_expires_at = now()->addMinutes(15);
+        $user->save();
 
         Event::fake();
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
-
-        $response = $this->actingAs($user)->get($verificationUrl);
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => '123456',
+        ]);
 
         Event::assertDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
         $response->assertRedirect(route('dashboard', absolute: false).'?verified=1');
     }
 
-    public function test_email_is_not_verified_with_invalid_hash(): void
+    public function test_email_is_not_verified_with_invalid_otp(): void
     {
         $user = User::factory()->unverified()->create();
+        $user->otp_code = '123456';
+        $user->otp_expires_at = now()->addMinutes(15);
+        $user->save();
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1('wrong-email')]
-        );
-
-        $this->actingAs($user)->get($verificationUrl);
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => 'wrong!',
+        ]);
 
         $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $response->assertSessionHasErrors(['otp']);
+    }
+
+    public function test_email_is_not_verified_with_expired_otp(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $user->otp_code = '123456';
+        $user->otp_expires_at = now()->subMinutes(5);
+        $user->save();
+
+        $response = $this->actingAs($user)->post('/verify-email', [
+            'otp' => '123456',
+        ]);
+
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $response->assertSessionHasErrors(['otp']);
     }
 }
