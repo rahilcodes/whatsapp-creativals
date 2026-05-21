@@ -10,21 +10,18 @@ use Illuminate\Support\Facades\Log;
 class AIService
 {
     private string $apiKey;
-    private string $model = 'gpt-4o-mini';
+    private string $model        = 'gpt-4o-mini';
+    private ?string $geminiKey;
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key', env('OPENAI_API_KEY', ''));
+        $this->apiKey   = config('services.openai.key', env('OPENAI_API_KEY', ''));
+        $this->geminiKey = env('GEMINI_API_KEY', '');
     }
 
     // ── Main entry: generate a reply for an incoming message ─
     public function generateReply(string $phone, string $userMessage, array $context): ?array
     {
-        if (empty($this->apiKey)) {
-            Log::error('OpenAI API key not configured');
-            return null;
-        }
-
         $systemPrompt = $this->buildSystemPrompt(
             $context['business_memory'],
             $context['long_term']
@@ -32,7 +29,25 @@ class AIService
 
         $messages = $this->buildMessages($systemPrompt, $context['short_term'], $userMessage);
 
-        $reply = $this->callOpenAI($messages);
+        // Try OpenAI first, fall back to Gemini if quota hit
+        $reply = null;
+        $quotaExhausted = false;
+
+        if (!empty($this->apiKey)) {
+            [$reply, $quotaExhausted] = $this->callOpenAI($messages);
+        }
+
+        // If OpenAI quota exhausted and Gemini key exists, try Gemini (free)
+        if ($quotaExhausted && !empty($this->geminiKey)) {
+            Log::warning('OpenAI quota exhausted — falling back to Gemini');
+            $reply = $this->callGemini($messages);
+        }
+
+        if (empty($this->apiKey) && empty($this->geminiKey)) {
+            Log::error('No AI API key configured (OPENAI_API_KEY or GEMINI_API_KEY)');
+            return null;
+        }
+
         if ($reply === null) return null;
 
         return $this->postCheck($reply);
@@ -86,8 +101,8 @@ class AIService
         return $messages;
     }
 
-    // ── Call OpenAI API ───────────────────────────────────────
-    private function callOpenAI(array $messages): ?string
+    // ── Call OpenAI API — returns [reply|null, isQuotaError] ────
+    private function callOpenAI(array $messages): array
     {
         try {
             $response = Http::withToken($this->apiKey)
@@ -101,17 +116,76 @@ class AIService
                     'top_p'       => 0.9,
                 ]);
 
+            if ($response->status() === 429) {
+                Log::warning('OpenAI quota/rate limit hit (429) — will try fallback', [
+                    'body' => substr($response->body(), 0, 300),
+                ]);
+                return [null, true]; // [reply, quotaExhausted]
+            }
+
             if ($response->failed()) {
                 Log::error('OpenAI API error', [
                     'status' => $response->status(),
-                    'body'   => $response->body(),
+                    'body'   => substr($response->body(), 0, 300),
+                ]);
+                return [null, false];
+            }
+
+            $text = trim($response->json('choices.0.message.content') ?? '');
+            return [$text ?: null, false];
+
+        } catch (\Throwable $e) {
+            Log::error('OpenAI exception', ['error' => $e->getMessage()]);
+            return [null, false];
+        }
+    }
+
+    // ── Call Google Gemini (free tier fallback) ─────────────────
+    private function callGemini(array $messages): ?string
+    {
+        try {
+            // Convert OpenAI message format to Gemini format
+            $contents = [];
+            $systemText = '';
+            foreach ($messages as $msg) {
+                if ($msg['role'] === 'system') {
+                    $systemText = $msg['content'];
+                    continue;
+                }
+                $contents[] = [
+                    'role'  => $msg['role'] === 'assistant' ? 'model' : 'user',
+                    'parts' => [['text' => $msg['content']]],
+                ];
+            }
+
+            $payload = [
+                'systemInstruction' => ['parts' => [['text' => $systemText]]],
+                'contents'          => $contents,
+                'generationConfig'  => [
+                    'maxOutputTokens' => 200,
+                    'temperature'     => 0.75,
+                ],
+            ];
+
+            $response = Http::withoutVerifying()
+                ->timeout(20)
+                ->post(
+                    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $this->geminiKey,
+                    $payload
+                );
+
+            if ($response->failed()) {
+                Log::error('Gemini API error', [
+                    'status' => $response->status(),
+                    'body'   => substr($response->body(), 0, 300),
                 ]);
                 return null;
             }
 
-            return trim($response->json('choices.0.message.content') ?? '');
+            return trim($response->json('candidates.0.content.parts.0.text') ?? '');
+
         } catch (\Throwable $e) {
-            Log::error('OpenAI exception', ['error' => $e->getMessage()]);
+            Log::error('Gemini exception', ['error' => $e->getMessage()]);
             return null;
         }
     }

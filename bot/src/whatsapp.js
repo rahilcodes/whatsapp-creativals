@@ -34,7 +34,7 @@ const STATE = {
 const BACKOFF_STEPS_MS   = [8000, 16000, 32000, 60000, 300000];
 const BAN_RISK_THRESHOLD = 5;
 const RECONNECT_WINDOW_MS = 10 * 60 * 1000;
-const MAX_QR_CYCLES       = 2;
+const MAX_QR_CYCLES       = 5;
 
 // ── Per-Tenant Session Store (Map) ────────────────────────────
 // tenantId (number) → { sock, sessionState, reconnectTimer, reconnectCount,

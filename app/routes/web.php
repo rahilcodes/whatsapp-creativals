@@ -21,38 +21,48 @@ Route::get('/refund-policy', function () {
 })->name('refunds');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Onboarding Setup Wizard Routes
+    Route::get('/onboarding', [\App\Http\Controllers\OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::post('/onboarding', [\App\Http\Controllers\OnboardingController::class, 'store'])->name('onboarding.store');
+    Route::post('/onboarding/skip', [\App\Http\Controllers\OnboardingController::class, 'skip'])->name('onboarding.skip');
 
-    // App Routes
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-    
-    Route::get('/chats', [\App\Http\Controllers\ChatController::class, 'index'])->name('chats.index');
-    Route::get('/chats/{phone}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chats.show');
-    Route::post('/chats/{phone}/takeover', [\App\Http\Controllers\ChatController::class, 'toggleTakeover'])->name('chats.takeover');
-    Route::delete('/chats/{phone}/memory', [\App\Http\Controllers\ChatController::class, 'clearMemory'])->name('chats.clear-memory');
+    // App routes protected by onboarding completion
+    Route::middleware(['onboarded'])->group(function () {
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+        // App Routes
+        Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+        
+        Route::get('/chats', [\App\Http\Controllers\ChatController::class, 'index'])->name('chats.index');
+        Route::get('/chats/{phone}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chats.show');
+        Route::post('/chats/{phone}/takeover', [\App\Http\Controllers\ChatController::class, 'toggleTakeover'])->name('chats.takeover');
+        Route::delete('/chats/{phone}/memory', [\App\Http\Controllers\ChatController::class, 'clearMemory'])->name('chats.clear-memory');
 
-    Route::get('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'index'])->name('business.index');
-    Route::post('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'store'])->name('business.store');
-    Route::put('/business/{id}', [\App\Http\Controllers\BusinessMemoryController::class, 'update'])->name('business.update');
-    Route::delete('/business/{id}', [\App\Http\Controllers\BusinessMemoryController::class, 'destroy'])->name('business.destroy');
-    Route::post('/business/{id}/toggle', [\App\Http\Controllers\BusinessMemoryController::class, 'toggleActive'])->name('business.toggle');
+        Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
-    // Dashboard AJAX Polling Routes (Moved from api.php to maintain session auth)
-    Route::prefix('api')->group(function () {
-        Route::get('/qr',                [\App\Http\Controllers\Api\QrController::class, 'show']);
-        Route::get('/bot-status',        [\App\Http\Controllers\Api\BotStatusController::class, 'index']);
-        Route::post('/bot/toggle',       [\App\Http\Controllers\Api\BotStatusController::class, 'toggle']);
-        Route::post('/bot/pause',        [\App\Http\Controllers\Api\BotStatusController::class, 'pause']);
-        Route::post('/bot/resume',       [\App\Http\Controllers\Api\BotStatusController::class, 'resume']);
-        Route::post('/bot/reconnect',    [\App\Http\Controllers\Api\BotStatusController::class, 'reconnect']);
-        Route::post('/bot/start',        [\App\Http\Controllers\Api\BotStatusController::class, 'startEngine']);
-        Route::get('/bot/health',        [\App\Http\Controllers\Api\BotStatusController::class, 'health']);
-        Route::get('/activity',          [\App\Http\Controllers\Api\BotStatusController::class, 'activity']);
+        Route::get('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'index'])->name('business.index');
+        Route::post('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'store'])->name('business.store');
+        Route::put('/business/{id}', [\App\Http\Controllers\BusinessMemoryController::class, 'update'])->name('business.update');
+        Route::delete('/business/{id}', [\App\Http\Controllers\BusinessMemoryController::class, 'destroy'])->name('business.destroy');
+        Route::post('/business/{id}/toggle', [\App\Http\Controllers\BusinessMemoryController::class, 'toggleActive'])->name('business.toggle');
+
+        // Dashboard AJAX Polling Routes (Moved from api.php to maintain session auth)
+        Route::prefix('api')->group(function () {
+            Route::get('/qr',                [\App\Http\Controllers\Api\QrController::class, 'show']);
+            Route::get('/qr/stream',         [\App\Http\Controllers\Api\QrController::class, 'stream']);
+            Route::post('/qr/clear',         [\App\Http\Controllers\Api\QrController::class, 'clearSession']);
+            Route::get('/bot-status',        [\App\Http\Controllers\Api\BotStatusController::class, 'index']);
+            Route::post('/bot/toggle',       [\App\Http\Controllers\Api\BotStatusController::class, 'toggle']);
+            Route::post('/bot/pause',        [\App\Http\Controllers\Api\BotStatusController::class, 'pause']);
+            Route::post('/bot/resume',       [\App\Http\Controllers\Api\BotStatusController::class, 'resume']);
+            Route::post('/bot/reconnect',    [\App\Http\Controllers\Api\BotStatusController::class, 'reconnect']);
+            Route::post('/bot/start',        [\App\Http\Controllers\Api\BotStatusController::class, 'startEngine']);
+            Route::get('/bot/health',        [\App\Http\Controllers\Api\BotStatusController::class, 'health']);
+            Route::get('/activity',          [\App\Http\Controllers\Api\BotStatusController::class, 'activity']);
+        });
     });
 });
 

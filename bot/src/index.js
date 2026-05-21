@@ -1,12 +1,15 @@
 // ============================================================
 // index.js — Entry point: start bot + API server
-// v4.0 — Multi-Tenant Auto-Discovery
+// v5.0 — Multi-Tenant Auto-Discovery (Parallel + Clean)
 //   - On startup, resets all stale statuses in Laravel DB
 //   - Fetches all active tenant IDs from Laravel
-//   - Starts a WhatsApp session for every active tenant
+//   - Starts ALL tenant WhatsApp sessions in PARALLEL (no stagger)
+//   - Cleans up stale auth_session_* folders automatically
 // ============================================================
 import 'dotenv/config';
 import axios from 'axios';
+import fs from 'fs';
+import path from 'path';
 import { startWhatsApp } from './whatsapp.js';
 import { startServer } from './server.js';
 import { log } from './utils.js';
@@ -22,7 +25,7 @@ log('info', `Bot Port:    ${BOT_PORT}`);
 // Start the Express API server first
 startServer();
 
-// Wait for Laravel to be ready (give it a moment if starting together)
+// ── Wait for Laravel to be ready ─────────────────────────────
 async function waitForLaravel(maxAttempts = 10, delayMs = 2000) {
   for (let i = 1; i <= maxAttempts; i++) {
     try {
@@ -38,18 +41,38 @@ async function waitForLaravel(maxAttempts = 10, delayMs = 2000) {
   return false;
 }
 
+// ── Clean up auth_session_* folders for tenants no longer active ──
+function cleanStaleSessions(activeTenantIds) {
+  try {
+    const cwd = process.cwd();
+    const entries = fs.readdirSync(cwd).filter(f => /^auth_session_\d+$/.test(f));
+    for (const dir of entries) {
+      const tenantId = parseInt(dir.replace('auth_session_', ''), 10);
+      if (!activeTenantIds.includes(tenantId)) {
+        try {
+          fs.rmSync(path.join(cwd, dir), { recursive: true, force: true });
+          log('info', `🧹 Cleaned stale session folder: ${dir} (tenant no longer active)`);
+        } catch (err) {
+          log('warn', `Could not clean ${dir}`, { error: err.message });
+        }
+      }
+    }
+  } catch (err) {
+    log('warn', 'Could not scan for stale sessions', { error: err.message });
+  }
+}
+
+// ── Main init: fetch all tenants and start sessions in PARALLEL ──
 async function initAllTenants() {
   const laravelReady = await waitForLaravel();
 
   if (!laravelReady) {
-    // Fall back to starting a single default session
     log('warn', 'Starting default tenant (ID: 1) as fallback');
     await startWhatsApp(1);
     return;
   }
 
-  // ── Step 1: Reset ALL stale "connected" statuses in Laravel DB ──
-  // This ensures the dashboard accurately reflects reality on every bot start
+  // ── Step 1: Reset ALL stale statuses in Laravel DB ──────────
   try {
     await axios.post(`${LARAVEL_URL}/api/bot/startup-reset`, {}, {
       headers: { 'X-Bot-Secret': SHARED_SECRET },
@@ -60,7 +83,7 @@ async function initAllTenants() {
     log('warn', 'Could not reset tenant statuses', { error: err.message });
   }
 
-  // ── Step 2: Fetch all active tenant IDs from Laravel ────────────
+  // ── Step 2: Fetch all active tenant IDs from Laravel ────────
   let tenantIds = [];
   try {
     const resp = await axios.get(`${LARAVEL_URL}/api/tenants/active`, {
@@ -74,18 +97,28 @@ async function initAllTenants() {
     tenantIds = [1];
   }
 
-  // ── Step 3: Start WhatsApp for every active tenant ───────────────
-  // Stagger starts by 2s to avoid hammering Baileys simultaneously
-  for (const tenantId of tenantIds) {
-    log('info', `[T${tenantId}] Auto-starting WhatsApp session on boot`);
-    await startWhatsApp(tenantId).catch(err => {
-      log('error', `[T${tenantId}] Failed to start WhatsApp`, { error: err.message });
-    });
-    // Small stagger between tenants to avoid rate-limits
-    if (tenantIds.length > 1) {
-      await new Promise(r => setTimeout(r, 2000));
-    }
+  // ── Step 3: Clean up stale auth session folders ──────────────
+  // Remove auth_session_* folders for tenants that are no longer active
+  cleanStaleSessions(tenantIds);
+
+  // ── Step 4: Start ALL tenant sessions IN PARALLEL ────────────
+  // No more sequential 2-second stagger — every tenant starts immediately.
+  // Each tenant has its own isolated socket so there's no conflict.
+  log('info', `Starting ${tenantIds.length} WhatsApp session(s) in parallel...`);
+
+  const results = await Promise.allSettled(
+    tenantIds.map(tenantId => {
+      log('info', `[T${tenantId}] Auto-starting WhatsApp session on boot`);
+      return startWhatsApp(tenantId);
+    })
+  );
+
+  const failed = results.filter(r => r.status === 'rejected');
+  if (failed.length > 0) {
+    log('warn', `${failed.length} tenant session(s) failed to start on boot`);
   }
+
+  log('info', `✅ Boot complete — ${tenantIds.length - failed.length}/${tenantIds.length} sessions started`);
 }
 
 initAllTenants().catch(err => {

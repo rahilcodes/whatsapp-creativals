@@ -66,10 +66,11 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         // Send OTP Email
+        \Illuminate\Support\Facades\Log::info("OTP Code generated for {$user->email}: {$otpCode}");
         try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\SendOtpMail($otpCode));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('OTP Email Send Failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("OTP Email Send Failed for {$user->email}: " . $e->getMessage() . " (OTP Code was: {$otpCode})");
         }
 
         Auth::login($user);

@@ -24,10 +24,11 @@ class EmailVerificationNotificationController extends Controller
         $user->otp_expires_at = now()->addMinutes(15);
         $user->save();
 
+        \Illuminate\Support\Facades\Log::info("OTP Code generated for {$user->email} (Resend): {$otpCode}");
         try {
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\SendOtpMail($otpCode));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('OTP Email Resend Failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("OTP Email Resend Failed for {$user->email}: " . $e->getMessage() . " (OTP Code was: {$otpCode})");
         }
 
         return back()->with('status', 'verification-link-sent');

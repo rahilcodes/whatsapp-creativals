@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>iChatUp — WhatsApp AI Bot. Live in 2 Minutes.</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
     <meta name="description" content="Connect AI to your WhatsApp in 2 minutes. No API. No WhatsApp deletion. Unlimited messages. Pre-built business memory. Start free today." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -36,7 +37,7 @@
         .navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;transition:all .3s;}
         .navbar.scrolled{background:var(--nav-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);box-shadow:var(--shadow);}
         .nav-inner{display:flex;align-items:center;justify-content:space-between;}
-        .logo{display:flex;align-items:center;gap:10px;}
+        .logo{display:flex;align-items:center;gap:5px;}
         .logo-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
         .logo-text{font-size:20px;font-weight:800;color:var(--text);}
         .nav-links{display:flex;align-items:center;gap:32px;}
@@ -221,14 +222,15 @@
         .tdot:nth-child(2){animation-delay:.2s;}.tdot:nth-child(3){animation-delay:.4s;}
         @keyframes tdot{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1);opacity:1}}
         /* floating badges */
-        .fbadge{position:absolute;border-radius:12px;padding:8px 13px;font-size:11px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px;animation:pfloat 6s ease-in-out infinite;z-index:10;}
+        .fbadge{position:absolute;border-radius:12px;padding:8px 13px;font-size:11px;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:6px;animation:bfloat 6s ease-in-out infinite;z-index:10;}
         /* light mode badge */
         .fbadge.glass{background:rgba(255,255,255,0.96);border:1px solid rgba(0,0,0,0.10);backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);color:#374151;}
         /* dark mode badge override */
         .dark .fbadge.glass{background:rgba(10,16,32,0.92);border:1px solid rgba(255,255,255,0.12);box-shadow:0 8px 32px rgba(0,0,0,.4);color:#CBD5E1;}
-        .fb-speed{top:-24px;right:16px;animation-delay:-2s;}
-        .fb-ai{bottom:-22px;left:-10px;animation-delay:-4s;}
+        .fb-speed{top:35px;right:-50px;animation-delay:-2s;}
+        .fb-ai{bottom:45px;left:-50px;animation-delay:-4s;}
         .fb-dot{width:8px;height:8px;border-radius:50%;background:var(--brand2);flex-shrink:0;box-shadow:0 0 0 3px rgba(16,185,129,0.2);}
+        @keyframes bfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 
         /* STATS MARQUEE */
         .stats-bar{padding:28px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);overflow:hidden;}
@@ -372,9 +374,7 @@
 <nav class="navbar" id="navbar">
     <div class="container nav-inner">
         <a href="/" class="logo">
-            <div class="logo-icon">
-                <svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-            </div>
+            <img src="{{ asset('ichatup_logo.png') }}" alt="iChatUp Logo" style="height:32px;width:auto;" />
             <span class="logo-text">iChatUp</span>
         </a>
         <div class="nav-links">
@@ -473,14 +473,13 @@
             {{-- RIGHT COLUMN — Phone Mockup --}}
             <div class="hero-right reveal-right d2">
                 <div class="phone-wrap">
-                    <!-- floating speed badge -->
-                    <div class="fbadge glass fb-speed">
-                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                        <span style="color:var(--brand2);">0.8s</span> avg reply
-                    </div>
-
                     <!-- phone shell -->
                     <div class="phone-shell">
+                        <!-- floating speed badge -->
+                        <div class="fbadge glass fb-speed">
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span style="color:var(--brand2);">0.8s</span> avg reply
+                        </div>
                         <div class="phone-notch"></div>
 
                         <!-- status bar -->
@@ -682,12 +681,11 @@
                                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- floating AI badge -->
-                    <div class="fbadge glass fb-ai">
-                        <div class="fb-dot"></div>
-                        <span>GPT-4o Powered</span>
+                        <!-- floating AI badge -->
+                        <div class="fbadge glass fb-ai">
+                            <div class="fb-dot"></div>
+                            <span>GPT-4o Powered</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1094,9 +1092,7 @@
         <div class="fg">
             <div class="fbrand">
                 <div class="logo">
-                    <div class="logo-icon">
-                        <svg width="18" height="18" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
-                    </div>
+                    <img src="{{ asset('ichatup_logo.png') }}" alt="iChatUp Logo" style="height:32px;width:auto;" />
                     <span class="logo-text">iChatUp</span>
                 </div>
                 <p>Advanced AI automation for WhatsApp. Connect in 2 minutes, automate 80% of support conversations.</p>
@@ -1129,7 +1125,7 @@
         </div>
         <div class="fbot">
             <span>© {{ date('Y') }} iChatUp. All rights reserved locally.</span>
-            <span style="display:flex;align-items:center;gap:5px;">Made with <svg width="14" height="14" fill="#ef4444" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg> for modern businesses.</span>
+            <span>From the Lab of <a href="https://creativals.com" target="_blank" style="color:var(--brand2);font-weight:600;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--brand3)'" onmouseout="this.style.color='var(--brand2)'">Creativals.com</a></span>
         </div>
     </div>
 </footer>

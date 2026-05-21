@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
+use App\Models\BotSetting;
 use App\Models\FlaggedConversation;
 use App\Models\Message;
 use App\Services\AIService;
@@ -121,8 +122,15 @@ class WhatsAppWebhookController extends Controller
         }
 
         if (!$result) {
-            ActivityLog::record('error', 'AI returned null', $phone);
-            return response()->json(['status' => 'ai_null']);
+            // AI returned null — send a warm fallback so customer isn't left on read
+            $fallback = BotSetting::get(
+                'ai_fallback_message',
+                "Thanks for reaching out! 😊 We've received your message and will get back to you shortly."
+            );
+            $savedFallback = $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
+            $this->bot->sendReply($jid, $fallback, false, $savedFallback->id);
+            ActivityLog::record('error', 'AI unavailable — fallback reply sent (check OpenAI quota/key)', $phone);
+            return response()->json(['status' => 'ai_fallback_sent']);
         }
 
         // ── STEP 9: Post-check — flag human if AI uncertain ───

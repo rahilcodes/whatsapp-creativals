@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
             'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'onboarded' => \App\Http\Middleware\RedirectIfOnboardingNotCompleted::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\TenantMiddleware::class,
