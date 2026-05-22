@@ -36,6 +36,12 @@ class WhatsAppWebhookController extends Controller
         $tenantId = (int) ($request->header('X-Tenant-ID') ?? 1);
         app()->instance('tenant_id', $tenantId);
 
+        // Check if tenant exists and is active (not suspended/inactive)
+        $tenant = \App\Models\Tenant::find($tenantId);
+        if (!$tenant || $tenant->status !== 'active') {
+            return response()->json(['status' => 'tenant_suspended']);
+        }
+
         $phone     = $request->string('phone')->toString();
         $jid       = $request->string('jid')->toString();
         $message   = $request->string('message')->toString();

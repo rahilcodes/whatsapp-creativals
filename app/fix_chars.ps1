@@ -1,0 +1,23 @@
+$bytes = [System.IO.File]::ReadAllBytes("resources\views\dashboard\index.blade.php")
+$enc1252 = [System.Text.Encoding]::GetEncoding(1252)
+$text = $enc1252.GetString($bytes)
+
+$text = $text.Replace("â†º Clear", "&#8635; Clear")
+$text = $text.Replace("â†' Linked Devices â†' Link a Device â†' Scan", "&rarr; Linked Devices &rarr; Link a Device &rarr; Scan")
+$text = $text.Replace("Verifying your scanâ€¦", "Verifying your scan...")
+$text = $text.Replace("Starting WhatsApp engineâ€¦", "Starting WhatsApp engine...")
+$text = $text.Replace("Real-time Â· updates instantly", "Real-time &middot; updates instantly")
+$text = $text.Replace("Verifying scanâ€¦", "Verifying scan...")
+$text = $text.Replace("Â· refreshing every 1.5s", "- refreshing every 1.5s")
+$text = $text.Replace("hold onâ€¦", "please wait...")
+$text = $text.Replace("â€" hold on", "- hold on")
+$text = $text.Replace("â€" pollQR", "-- pollQR")
+$text = $text.Replace("â€" incompatible", "-- incompatible")
+$text = $text.Replace("â€" Dashboard", "- Dashboard")
+$text = $text.Replace("âœ… Connected", "Connected")
+$text = $text.Replace("âœ… WhatsApp Connected!", "WhatsApp Connected!")
+$text = $text.Replace("ðŸ"  Run inside", "Run inside")
+
+$outBytes = [System.Text.Encoding]::UTF8.GetBytes($text)
+[System.IO.File]::WriteAllBytes("resources\views\dashboard\index.blade.php", $outBytes)
+Write-Host "Done"

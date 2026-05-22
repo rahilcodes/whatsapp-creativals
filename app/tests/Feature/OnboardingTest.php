@@ -97,7 +97,7 @@ class OnboardingTest extends TestCase
             ->post('/onboarding', [
                 'account_type' => 'personal',
                 'personal_name' => 'Alex Dev',
-                'use_case' => 'Learn & Experiment',
+                'personal_role' => 'Learn & Experiment',
                 'ai_name' => 'Sandbox AI',
                 'ai_tone' => 'casual',
                 'greeting_message' => 'Hey, Sandbox active!',
@@ -113,7 +113,7 @@ class OnboardingTest extends TestCase
         $this->assertEquals('personal', $this->tenant->account_type);
 
         $memories = BusinessMemory::where('tenant_id', $this->tenant->id)->get();
-        $this->assertCount(3, $memories);
+        $this->assertCount(4, $memories);
     }
 
     public function test_can_skip_whatsapp_connection_and_explore(): void

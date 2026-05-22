@@ -12,6 +12,11 @@ class SafetyService
     // ── Is the bot globally enabled? ──────────────────────────
     public function isBotEnabled(): bool
     {
+        // Check global system toggle first
+        if (\App\Models\SystemStatus::get('global_ai_enabled', '1') === '0') {
+            return false;
+        }
+
         return BotSetting::get('bot_enabled', '1') === '1';
     }
 

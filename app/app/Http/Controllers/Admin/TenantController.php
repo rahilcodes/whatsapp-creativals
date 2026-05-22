@@ -13,11 +13,6 @@ class TenantController extends Controller
      */
     public function index()
     {
-        $tenants = Tenant::with(['users', 'whatsappStatus'])
-            ->withCount('messages')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('admin.tenants', compact('tenants'));
+        return redirect()->route('admin.dashboard');
     }
 }

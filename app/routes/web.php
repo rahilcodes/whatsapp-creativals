@@ -81,7 +81,17 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 // Super Admin Routes
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 
 Route::middleware(['auth', 'super.admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard',     [AdminDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/stats',         [AdminDashboardController::class, 'stats'])->name('stats');
+    Route::get('/tenants/list',  [AdminDashboardController::class, 'tenants'])->name('tenants.list');
+    Route::post('/toggle-ai',    [AdminDashboardController::class, 'toggleAi'])->name('toggle-ai');
+    Route::post('/pause-tenant', [AdminDashboardController::class, 'pauseTenant'])->name('pause-tenant');
+    Route::get('/activity',      [AdminDashboardController::class, 'activity'])->name('activity');
+    Route::get('/system-health', [AdminDashboardController::class, 'systemHealth'])->name('system-health');
+    
+    // Redirect old tenants list to dashboard
     Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
 });
