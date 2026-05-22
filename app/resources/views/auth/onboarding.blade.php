@@ -505,7 +505,8 @@
                             <!-- Error state -->
                             <div id="qrError" style="display:none; text-align:center; padding:16px 0;">
                                 <svg style="width:32px;height:32px;stroke:var(--text-muted);fill:none;stroke-width:2;margin-bottom:10px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                <p style="font-size:12px; color:var(--text-muted); line-height:1.6;">The bot engine is not running. Start it with <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px;">node bot/index.js</code> and refresh.</p>
+                                <p style="font-size:12px; color:var(--text-muted); line-height:1.6; margin-bottom:10px;">Bot engine not detected. Make sure <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px;">node bot/index.js</code> is running, then click Retry.</p>
+                                <button type="button" onclick="retryQr()" style="font-size:11px;padding:6px 16px;border-radius:8px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-weight:600;transition:all 0.2s;" onmouseover="this.style.background='var(--accent)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--accent)'">Retry</button>
                             </div>
 
                             <!-- Steps -->
@@ -1002,11 +1003,34 @@
     function doSkip() { document.getElementById('skipForm').submit(); }
 
     // ─── QR Polling ───────────────────────────────────────────
-    // Uses the same /api/qr endpoint as the dashboard — requires auth cookie (present since user is logged in)
+    // Mirrors the dashboard flow exactly:
+    //   1. Call /api/bot/start  (wakes the Node.js bot engine)
+    //   2. Poll /api/qr every 1.5s until QR appears or status=connected
     function startQrPoll() {
         qrAttempts  = 0;
-        qrPollTimer = setInterval(pollQr, 2000);
-        pollQr();
+
+        // Wake the bot engine first (same as dashboard "Generate QR" button)
+        fetch('/api/bot/start', {
+            method:      'POST',
+            credentials: 'same-origin',
+            headers:     { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                           'Content-Type': 'application/json' }
+        }).catch(() => {}); // Fire-and-forget; poll will surface any issues
+
+        // Start polling after a 1-second head-start so bot has time to init
+        setTimeout(() => {
+            qrPollTimer = setInterval(pollQr, 1500);
+            pollQr();
+        }, 1000);
+    }
+
+    function retryQr() {
+        // Reset error UI
+        document.getElementById('qrError').style.display   = 'none';
+        document.getElementById('qrLoading').style.display = 'flex';
+        document.getElementById('rightSpinner').style.display = 'flex';
+        setStatus('yellow', 'Connecting');
+        startQrPoll();
     }
 
     function pollQr() {
@@ -1050,7 +1074,9 @@
             }
         })
         .catch(() => {
-            if (qrAttempts >= 4) {
+            // Allow up to 25 failed attempts (~37s) before showing the error state
+            // The bot engine can take up to 15 seconds to start and push its first QR
+            if (qrAttempts >= 25) {
                 clearInterval(qrPollTimer);
                 document.getElementById('qrLoading').style.display = 'none';
                 document.getElementById('qrError').style.display   = 'block';
