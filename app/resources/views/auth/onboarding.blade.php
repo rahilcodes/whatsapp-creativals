@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>iChatUp — Welcome Aboard</title>
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1025,10 +1026,15 @@
     }
 
     function retryQr() {
-        // Reset error UI
+        // Reset error UI and stop any existing poll
+        clearInterval(qrPollTimer);
+        qrAttempts = 0;
         document.getElementById('qrError').style.display   = 'none';
         document.getElementById('qrLoading').style.display = 'flex';
+        document.getElementById('qrImgWrap').style.display = 'none';
         document.getElementById('rightSpinner').style.display = 'flex';
+        document.getElementById('rightQrImg').style.display = 'none';
+        document.getElementById('rightScanLine').style.display = 'none';
         setStatus('yellow', 'Connecting');
         startQrPoll();
     }
@@ -1049,6 +1055,8 @@
             const rScan    = document.getElementById('rightScanLine');
 
             if (data.qr) {
+                // Reset attempt counter each time we get a valid QR
+                qrAttempts = 0;
                 loadEl.style.display  = 'none';
                 errDiv.style.display  = 'none';
                 imgWrap.style.display = 'flex';
@@ -1059,6 +1067,13 @@
                 rImg.style.display     = 'block';
                 rScan.style.display    = 'block';
                 setStatus('yellow', 'Scan to connect');
+            } else if (data.session_state === 'paused') {
+                // Bot hit QR timeout — auto-restart the engine silently
+                clearInterval(qrPollTimer);
+                qrAttempts = 0;
+                setStatus('yellow', 'Restarting engine');
+                setTimeout(() => startQrPoll(), 2000);
+                return;
             }
 
             if (data.status === 'connected') {

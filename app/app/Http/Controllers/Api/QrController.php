@@ -38,13 +38,14 @@ class QrController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    // ── GET /api/qr — Dashboard polls this (web route, session-scoped) ─
+    // ── GET /api/qr — Dashboard + Onboarding polls this (web route, session-scoped) ─
     public function show(): JsonResponse
     {
         $status = WhatsappStatus::current();
         return response()->json([
-            'qr'     => $status->qr_code,
-            'status' => $status->status,
+            'qr'            => $status->qr_code,
+            'status'        => $status->status,
+            'session_state' => $status->session_state,
         ]);
     }
 
