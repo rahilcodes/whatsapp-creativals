@@ -3,7 +3,7 @@
 @section('subtitle', 'Live overview & controls')
 
 @section('content')
-{{-- â”€â”€ STAT CARDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+{{-- -- STAT CARDS ----------------------------------------------- --}}
 <div class="grid grid-cols-4 gap-4 mb-6">
     @php
         $stats = [
@@ -27,10 +27,10 @@
 </div>
 
 <div class="grid grid-cols-3 gap-6">
-    {{-- â”€â”€ LEFT COL: Status + QR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- -- LEFT COL: Status + QR ------------------------------- --}}
     <div class="col-span-2 space-y-5">
 
-        {{-- â”€â”€ FAILSAFE BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+        {{-- -- FAILSAFE BANNER ------------------------------------------ --}}
         <div id="failsafe-banner" class="hidden mb-5 p-4 rounded-xl flex items-center justify-between" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);">
             <div class="flex items-center gap-3">
                 <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -100,7 +100,7 @@
                 <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
                     <div class="text-slate-500 text-xs mb-1">Node.js Engine</div>
                     <div class="{{ $nodeRunning ? 'text-emerald-400' : 'text-red-400' }} font-medium text-xs">
-                        {{ $nodeRunning ? 'â— Running' : 'â— Offline' }}
+                        {!! $nodeRunning ? '&#9679; Running' : '&#9679; Offline' !!}
                     </div>
                 </div>
                 <div class="p-3 rounded-lg" style="background:rgba(255,255,255,0.03);">
@@ -123,19 +123,19 @@
             </div>
         </div>
 
-        {{-- â”€â”€ QR Code Card (v2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+        {{-- -- QR Code Card (v2) ----------------------------------- --}}
         <div class="card p-6" id="qr-card" style="{{ $waStatus->isConnected() ? 'display:none' : '' }}">
             <div class="flex items-center justify-between mb-1">
                 <h2 class="font-semibold text-white">Scan QR Code</h2>
                 <button id="clear-session-btn" onclick="clearSession()"
                     class="text-[10px] font-semibold text-slate-500 hover:text-red-400 border border-slate-700 hover:border-red-500/40 px-2 py-1 rounded-lg transition-all"
                     title="Clear saved session and force a fresh QR">
-                    â†º Clear &amp; Re-scan
+                    &#8635; Clear &amp; Re-scan
                 </button>
             </div>
-            <p class="text-xs text-slate-500 mb-4">Open WhatsApp â†’ Linked Devices â†’ Link a Device â†’ Scan</p>
+            <p class="text-xs text-slate-500 mb-4">Open WhatsApp  &rarr;  Linked Devices  &rarr;  Link a Device  &rarr;  Scan</p>
 
-            {{-- â”€â”€ Inner QR zone â”€â”€ --}}
+            {{-- -- Inner QR zone -- --}}
             <div class="rounded-xl overflow-hidden" style="background:#fff;">
                 <div id="qr-container" class="flex items-center justify-center" style="min-height:320px;">
 
@@ -171,7 +171,7 @@
                                 <path d="M130.08 104.992c-2.24-1.12-13.248-6.544-15.296-7.28-2.064-.736-3.552-1.12-5.04 1.12-1.504 2.224-5.776 7.28-7.088 8.784-1.296 1.488-2.608 1.664-4.848.544-2.24-1.12-9.456-3.488-18.016-11.12-6.656-5.936-11.152-13.264-12.464-15.52-1.296-2.224-.144-3.424.976-4.528.992-.992 2.224-2.592 3.328-3.888 1.12-1.296 1.488-2.224 2.24-3.728.752-1.488.368-2.784-.192-3.904-.544-1.12-5.04-12.128-6.912-16.608-1.808-4.368-3.664-3.776-5.04-3.84-1.296-.064-2.784-.08-4.272-.08-1.488 0-3.904.56-5.952 2.784-2.048 2.224-7.824 7.648-7.824 18.64 0 10.992 8.016 21.616 9.136 23.104 1.12 1.504 15.776 24.096 38.24 33.808 5.344 2.304 9.52 3.68 12.768 4.72 5.36 1.712 10.24 1.472 14.096.896 4.304-.64 13.248-5.408 15.12-10.64 1.872-5.232 1.872-9.712 1.312-10.64-.544-.896-2.032-1.44-4.272-2.56z" fill="white"/>
                             </svg>
                         </div>
-                        <p class="text-white font-semibold text-sm">Verifying your scanâ€¦</p>
+                        <p class="text-white font-semibold text-sm">Verifying your scan...</p>
                         <p class="text-slate-500 text-xs">Establishing WhatsApp connection</p>
                         <div style="width:180px;height:3px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
                             <div style="height:100%;background:linear-gradient(90deg,#10b981,#34d399);animation:slideBar 1.5s ease-in-out infinite;"></div>
@@ -181,7 +181,7 @@
                     {{-- State 4: Starting spinner (after clicking Generate QR) --}}
                     <div id="qr-starting" style="display:none;" class="flex flex-col items-center gap-3 py-8">
                         <div class="w-10 h-10 border-2 border-slate-700 border-t-emerald-500 rounded-full animate-spin"></div>
-                        <p class="text-slate-400 text-xs">Starting WhatsApp engineâ€¦</p>
+                        <p class="text-slate-400 text-xs">Starting WhatsApp engine...</p>
                     </div>
 
                     {{-- State 5: Bot offline error --}}
@@ -215,7 +215,7 @@
 
             {{-- Footer: countdown label / SSE indicator --}}
             <div class="flex items-center justify-between mt-3">
-                <p class="text-xs text-slate-600" id="qr-footer-msg">Real-time Â· updates instantly</p>
+                <p class="text-xs text-slate-600" id="qr-footer-msg">Real-time  &middot;  updates instantly</p>
                 <div class="flex items-center gap-1.5">
                     <div class="w-1.5 h-1.5 rounded-full bg-emerald-400"  style="animation:pulse 2s ease-in-out infinite;"></div>
                     <span class="text-[10px] text-slate-600" >Auto-refresh</span>
@@ -224,7 +224,7 @@
         </div>
     </div>
 
-    {{-- â”€â”€ RIGHT COL: Activity Feed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- -- RIGHT COL: Activity Feed --------------------------- --}}
     <div class="card p-5 flex flex-col" style="max-height:calc(100vh - 180px);">
         <div class="flex items-center justify-between mb-4">
             <h2 class="font-semibold text-white text-sm">Activity Feed</h2>
@@ -286,7 +286,7 @@
 </style>
 <script>
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-// QR MODULE â€” Fast 1.5s polling (SSE removed â€” incompatible with SQLite
+// QR MODULE  -  Fast 1.5s polling (SSE removed  -  incompatible with SQLite
 //             + php artisan serve single-thread model)
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
@@ -297,7 +297,7 @@ let notifRequested = false;
 let lastQrSrc      = null;
 let pollActive     = true;
 
-// â”€â”€ Show only one QR state at a time â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Show only one QR state at a time -------------------------
 function showQrState(state) {
     const states = {
         prompt:     document.getElementById('qr-prompt'),
@@ -315,15 +315,15 @@ function showQrState(state) {
     if (footer) {
         footer.textContent = {
             prompt:     'Click Generate QR to begin',
-            starting:   'Starting engine â€” hold onâ€¦',
-            image:      'Scan with WhatsApp now Â· refreshing every 1.5s',
-            connecting: 'Verifying scanâ€¦',
+            starting:   'Starting engine  -  hold on...',
+            image:      'Scan with WhatsApp now  &middot;  refreshing every 1.5s',
+            connecting: 'Verifying scan...',
             offline:    'Node.js engine is not running',
         }[state] || '';
     }
 }
 
-// â”€â”€ 20-second QR countdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- 20-second QR countdown ----------------------------------
 function startCountdown() {
     stopCountdown();
     countdownVal = 20;
@@ -345,7 +345,7 @@ function updateCountdown() {
     el.style.color = countdownVal <= 7 ? '#ef4444' : '#10b981';
 }
 
-// â”€â”€ Handle QR/status update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Handle QR/status update -------------------------------
 function handleQrData(data) {
     const qrCard = document.getElementById('qr-card');
 
@@ -354,7 +354,7 @@ function handleQrData(data) {
         wasShowingQr = false;
         stopCountdown();
         fireBrowserNotification();
-        document.title = 'âœ… Connected â€” Dashboard';
+        document.title = '✓ Connected  -  Dashboard';
         setTimeout(() => { document.title = 'Dashboard'; }, 5000);
         return;
     }
@@ -388,7 +388,7 @@ function handleQrData(data) {
     }
 }
 
-// â”€â”€ Fast poll: every 1.5 seconds â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- Fast poll: every 1.5 seconds -----------------------------
 async function pollQR() {
     if (!pollActive) return;
     try {
@@ -422,7 +422,7 @@ async function startEngine() {
         if (d.status === 'error') {
             showQrState('offline');
         }
-        // status === 'starting' â€” pollQR will pick up QR when bot pushes it
+        // status === 'starting'  -  pollQR will pick up QR when bot pushes it
     } catch {
         showQrState('offline');
     }
@@ -577,7 +577,7 @@ function requestNotificationPermission() {
 
 function fireBrowserNotification() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    new Notification('âœ… WhatsApp Connected!', {
+    new Notification('✓ WhatsApp Connected!', {
         body: 'Your AI assistant is now live and handling customers.',
         icon: '/ichatup_logo.png',
         tag:  'wa-connected',
