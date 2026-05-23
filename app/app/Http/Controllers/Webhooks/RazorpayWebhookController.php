@@ -16,7 +16,7 @@ class RazorpayWebhookController extends Controller
     public function handle(Request $request): Response
     {
         $signature = $request->header('X-Razorpay-Signature');
-        $webhookSecret = env('RAZORPAY_WEBHOOK_SECRET', '');
+        $webhookSecret = config('services.razorpay.webhook_secret', '');
 
         // Verify webhook signature if secret is configured
         if (!empty($webhookSecret)) {

@@ -45,4 +45,12 @@ return [
         'redirect'      => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'razorpay' => [
+        'key_id' => env('RAZORPAY_KEY_ID', ''),
+        'key_secret' => env('RAZORPAY_KEY_SECRET', ''),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET', ''),
+        'plan_starter' => env('RAZORPAY_PLAN_STARTER', 'plan_starter_test'),
+        'plan_automator' => env('RAZORPAY_PLAN_AUTOMATOR', 'plan_automator_test'),
+    ],
+
 ];

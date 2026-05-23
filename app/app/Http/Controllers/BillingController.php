@@ -16,8 +16,8 @@ class BillingController extends Controller
 
     public function __construct()
     {
-        $this->keyId = env('RAZORPAY_KEY_ID', '');
-        $this->keySecret = env('RAZORPAY_KEY_SECRET', '');
+        $this->keyId = config('services.razorpay.key_id', '');
+        $this->keySecret = config('services.razorpay.key_secret', '');
         $this->isConfigured = !empty($this->keyId) && !empty($this->keySecret);
     }
 
@@ -56,8 +56,8 @@ class BillingController extends Controller
         // Select Plan IDs (slashed pricing amounts represented as recurring subscriptions)
         // Defaults: Starter = plan_starter_test (₹2,499/mo), Automator = plan_automator_test (₹5,999/mo)
         $planIdEnv = $plan === 'starter' 
-            ? env('RAZORPAY_PLAN_STARTER', 'plan_starter_test') 
-            : env('RAZORPAY_PLAN_AUTOMATOR', 'plan_automator_test');
+            ? config('services.razorpay.plan_starter', 'plan_starter_test') 
+            : config('services.razorpay.plan_automator', 'plan_automator_test');
 
         if (!$this->isConfigured) {
             // Local Test Mode: Return simulated Razorpay subscription details
