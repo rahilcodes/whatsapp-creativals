@@ -150,4 +150,76 @@ class LeadSystemTest extends TestCase
         $scoreLow = $intel->calculateLeadScore('greeting', 'neutral', 1);
         $this->assertEquals(12, $scoreLow); // 2 + 5 + 5 = 12
     }
+
+    public function test_background_job_stores_business_type(): void
+    {
+        // Set onboarding category to food & beverage
+        $this->tenantA->business_category = 'Food & Beverage (Restaurants, Cafes)';
+        $this->tenantA->save();
+
+        // Dispatch ProcessLeadEngagement directly
+        $job = new \App\Jobs\ProcessLeadEngagement($this->tenantA->id, '1234567890', 'Hello, I want to order food');
+        
+        // Mock LeadIntelligenceService to return dummy details to avoid external HTTP requests
+        $intelMock = $this->createMock(LeadIntelligenceService::class);
+        $intelMock->method('analyzeEngagement')->willReturn([
+            'name' => 'Alice Pizza',
+            'intent' => 'buying_intent',
+            'mood' => 'interested',
+            'summary' => 'Wants to order food.',
+            'human_required' => false,
+        ]);
+        $intelMock->method('calculateLeadScore')->willReturn(80);
+
+        $capture = new LeadCaptureService();
+
+        // Run the job handler with mocked intelligence service
+        $job->handle($capture, $intelMock);
+
+        // Assert that the lead record was created with the correct business_type
+        $lead = Lead::where('phone', '1234567890')->first();
+        $this->assertNotNull($lead);
+        $this->assertEquals('restaurant', $lead->business_type);
+        $this->assertEquals('Alice Pizza', $lead->captured_name);
+        $this->assertEquals('ready_to_buy', $lead->capture_stage);
+    }
+
+    public function test_background_job_extracts_llm_credentials_and_protects_overwrite(): void
+    {
+        app()->instance('tenant_id', $this->tenantA->id);
+
+        // Pre-create lead with a captured name to test overwrite protection
+        $existingLead = Lead::create([
+            'phone' => '1234567890',
+            'captured_name' => 'Original Name',
+            'captured_email' => null,
+            'captured_phone' => null,
+        ]);
+
+        $job = new \App\Jobs\ProcessLeadEngagement($this->tenantA->id, '1234567890', 'My email is test@domain.com and call me at +91 9999999999');
+
+        $intelMock = $this->createMock(LeadIntelligenceService::class);
+        $intelMock->method('analyzeEngagement')->willReturn([
+            'name' => 'New Decoded Name', // should NOT overwrite Original Name
+            'email' => 'test@domain.com', // should be saved
+            'phone' => '+91 99999 99999', // should be cleaned and saved
+            'intent' => 'service_inquiry',
+            'mood' => 'interested',
+            'summary' => 'Shared details.',
+            'human_required' => false,
+        ]);
+        $intelMock->method('calculateLeadScore')->willReturn(60);
+
+        $capture = new LeadCaptureService();
+        $job->handle($capture, $intelMock);
+
+        $lead = Lead::where('phone', '1234567890')->first();
+        $this->assertNotNull($lead);
+        // Assert name was NOT overwritten due to protection
+        $this->assertEquals('Original Name', $lead->captured_name);
+        // Assert email was saved from insights
+        $this->assertEquals('test@domain.com', $lead->captured_email);
+        // Assert phone was saved and cleaned
+        $this->assertEquals('+919999999999', $lead->captured_phone);
+    }
 }

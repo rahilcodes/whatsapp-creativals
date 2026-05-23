@@ -67,15 +67,33 @@ class ProcessLeadEngagement implements ShouldQueue
                 'phone' => $this->phone,
             ]);
 
-            // Fill details progressively if not already captured
+            // Detect and save business niche dynamically using the hierarchical resolver
+            $businessMemoryText = \App\Models\BusinessMemory::forPrompt();
+            $businessType = app(\App\Services\AIService::class)->detectBusinessType($this->messageContent, [
+                'business_memory' => $businessMemoryText
+            ]);
+            $lead->business_type = $businessType;
+
+            // Fill details progressively if not already captured (overwrite protection + LLM extraction + Regex fallback)
             if (empty($lead->captured_name) && !empty($insights['name'])) {
                 $lead->captured_name = $insights['name'];
             }
-            if (empty($lead->captured_email) && !empty($extractedEmail)) {
-                $lead->captured_email = $extractedEmail;
+            if (empty($lead->captured_email)) {
+                if (!empty($insights['email'])) {
+                    $lead->captured_email = $insights['email'];
+                } elseif (!empty($extractedEmail)) {
+                    $lead->captured_email = $extractedEmail;
+                }
             }
-            if (empty($lead->captured_phone) && !empty($extractedPhone)) {
-                $lead->captured_phone = $extractedPhone;
+            if (empty($lead->captured_phone)) {
+                if (!empty($insights['phone'])) {
+                    $cleanedPhone = preg_replace('/[^0-9+]/', '', $insights['phone']);
+                    if (strlen($cleanedPhone) >= 10) {
+                        $lead->captured_phone = $cleanedPhone;
+                    }
+                } elseif (!empty($extractedPhone)) {
+                    $lead->captured_phone = $extractedPhone;
+                }
             }
 
             // Calculate lead score

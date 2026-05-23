@@ -25,6 +25,8 @@ class LeadIntelligenceService
     {
         $defaultAnalysis = [
             'name' => null,
+            'email' => null,
+            'phone' => null,
             'intent' => 'inquiry',
             'mood' => 'neutral',
             'summary' => 'Customer sent a message regarding services.',
@@ -50,6 +52,8 @@ RECENT CONVERSATION HISTORY:
 Respond ONLY with a valid JSON object. Do not include markdown wraps (like ```json). Output exactly this JSON structure:
 {
   \"name\": \"<extracted name of the customer if mentioned, else null>\",
+  \"email\": \"<extracted email address of the customer if mentioned, else null>\",
+  \"phone\": \"<extracted direct mobile or whatsapp number of the customer if mentioned, else null>\",
   \"intent\": \"<one of [greeting, inquiry, pricing_inquiry, service_inquiry, buying_intent, objection, complaint, casual]>\",
   \"mood\": \"<one of [neutral, curious, interested, hesitant, confused, frustrated, urgent]>\",
   \"summary\": \"<2-3 sentence brief factual summary of what the customer wants/needs>\",
@@ -121,7 +125,9 @@ Respond ONLY with a valid JSON object. Do not include markdown wraps (like ```js
         // 1. Intent weighting
         $intentWeights = [
             'buying_intent'    => 40,
+            'buying'           => 40,
             'pricing_inquiry'  => 25,
+            'pricing'          => 25,
             'service_inquiry'  => 20,
             'inquiry'          => 10,
             'objection'        => 15,

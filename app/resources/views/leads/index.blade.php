@@ -76,8 +76,11 @@
                             <span class="font-medium text-slate-200 block truncate max-w-[150px]">
                                 {{ $lead->captured_name ?? 'N/A' }}
                             </span>
+                            @if($lead->business_type)
+                                <span class="text-[9px] text-brand-400 font-mono tracking-wider block capitalize">{{ str_replace('_', ' ', $lead->business_type) }}</span>
+                            @endif
                             @if(empty($lead->captured_email))
-                                <span class="text-[10px] text-red-500">Email missing</span>
+                                <span class="text-[10px] text-red-500 block">Email missing</span>
                             @else
                                 <span class="text-[10px] text-slate-500 block truncate max-w-[150px]">{{ $lead->captured_email }}</span>
                             @endif
@@ -229,6 +232,10 @@
                         <div class="space-y-1 mt-2">
                             <span class="text-[10px] text-slate-500 uppercase block">Last Emotion</span>
                             <span class="text-xs font-medium text-slate-200 capitalize" x-text="lead.mood || 'neutral'"></span>
+                        </div>
+                        <div class="space-y-1 mt-2 col-span-2">
+                            <span class="text-[10px] text-slate-500 uppercase block">Business Niche</span>
+                            <span class="text-xs font-medium text-slate-200 capitalize" x-text="lead.business_type ? lead.business_type.replace('_', ' ') : 'generic'"></span>
                         </div>
                     </div>
 
