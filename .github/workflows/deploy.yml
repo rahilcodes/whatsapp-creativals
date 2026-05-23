@@ -22,28 +22,32 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             echo "🚀 Starting Deployment..."
-            cd /var/www/whatsapp-ai
-            
+
             # Fetch latest code
+            cd /var/www/whatsapp-ai
             git pull origin main
-            
+
             # Update Laravel Backend
-            cd app
+            cd /var/www/whatsapp-ai/app
             composer install --optimize-autoloader --no-dev
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            
+
             # Update Node.js Engine
-            cd ../bot
+            cd /var/www/whatsapp-ai/bot
             npm install
-            
-            # Restart WhatsApp PM2 Process
-            # PM2 daemon runs as root, so we need sudo
-            sudo pm2 stop whatsapp-engine 2>/dev/null || true
-            sudo pm2 delete whatsapp-engine 2>/dev/null || true
-            sudo pm2 restart ichatup-bot 2>/dev/null || sudo pm2 start pm2.config.js
-            sudo pm2 save
-            
+
+            # Restart WhatsApp PM2 Process (absolute path to config)
+            # Remove legacy process name if it exists
+            pm2 stop whatsapp-engine 2>/dev/null || true
+            pm2 delete whatsapp-engine 2>/dev/null || true
+            # Restart existing ichatup-bot, or start fresh from config file
+            pm2 restart ichatup-bot 2>/dev/null || pm2 start /var/www/whatsapp-ai/bot/pm2.config.js --update-env
+            pm2 save
+
+            echo "=== PM2 Status ==="
+            pm2 list
+
             echo "✅ DEPLOYMENT SUCCESSFUL!"
