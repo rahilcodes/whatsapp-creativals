@@ -35,31 +35,43 @@ jobs:
             php artisan route:cache
             php artisan view:cache
 
-            # Update Node.js Engine
+            # Update Node.js Engine deps
             cd /var/www/whatsapp-ai/bot
             npm install
 
-            # Fix bot .env — LARAVEL_URL must be HTTPS (Nginx redirects HTTP→HTTPS, breaking POST)
+            # Fix bot .env — LARAVEL_URL must use HTTPS (HTTP 80 does 301 redirect breaking POST)
             sed -i 's|LARAVEL_URL=.*|LARAVEL_URL=https://ichatup.com|' /var/www/whatsapp-ai/bot/.env
-            echo "LARAVEL_URL is now: $(grep LARAVEL_URL /var/www/whatsapp-ai/bot/.env)"
+            echo "LARAVEL_URL: $(grep LARAVEL_URL /var/www/whatsapp-ai/bot/.env)"
 
-            # Restart WhatsApp PM2 Process
-            # Try multiple strategies in order:
-            # 1. Kill any stale whatsapp-engine processes
-            pm2 stop whatsapp-engine 2>/dev/null || true
-            pm2 delete whatsapp-engine 2>/dev/null || true
-            # 2. Restart ichatup-bot if it exists in PM2
-            if pm2 describe ichatup-bot > /dev/null 2>&1; then
-              echo "Restarting existing ichatup-bot process..."
-              pm2 restart ichatup-bot --update-env
-            else
-              echo "Starting fresh ichatup-bot from pm2.config.js..."
+            # ── Restart the WhatsApp Bot ──────────────────────────────
+            # Kill any existing node bot processes cleanly
+            pkill -f "node.*whatsapp-ai/bot/src/index.js" 2>/dev/null || true
+            sleep 2
+
+            # Try PM2 first (preferred — handles auto-restart on crash)
+            if command -v pm2 &>/dev/null; then
+              pm2 stop whatsapp-engine 2>/dev/null || true
+              pm2 delete whatsapp-engine 2>/dev/null || true
+              pm2 stop ichatup-bot 2>/dev/null || true
+              pm2 delete ichatup-bot 2>/dev/null || true
               cd /var/www/whatsapp-ai/bot
               pm2 start /var/www/whatsapp-ai/bot/pm2.config.js
+              pm2 save
+              echo "Started via PM2"
+              pm2 list
+            else
+              # Fallback: start directly with nohup
+              cd /var/www/whatsapp-ai/bot
+              nohup node src/index.js >> /var/www/whatsapp-ai/bot/bot.log 2>&1 &
+              echo "Started via nohup, PID: $!"
             fi
-            pm2 save
 
-            echo "=== PM2 Status ==="
-            pm2 list
+            # Verify bot started (wait 5s for it to init)
+            sleep 5
+            if curl -sf http://127.0.0.1:3000/health > /dev/null 2>&1; then
+              echo "✅ Bot is UP and responding on port 3000"
+            else
+              echo "⚠️ Bot not responding on port 3000 yet — may still be initialising"
+            fi
 
             echo "✅ DEPLOYMENT SUCCESSFUL!"

@@ -13,7 +13,7 @@
 //   pm2 stop ichatup-bot    — Stop bot
 // ============================================================
 
-module.exports = {
+export default {
   apps: [
     {
       name: 'ichatup-bot',
