@@ -23,9 +23,9 @@ for ($t = 1; $t <= 9; $t++) {
     curl_close($ch);
 }
 
-echo "\n=== PM2 list (via HOME=/root) ===\n";
-putenv('HOME=/root');
-echo shell_exec('HOME=/root pm2 list 2>&1') ?: "no output\n";
+echo "\n=== PM2 list (PM2_HOME=/var/www/.pm2) ===\n";
+putenv('HOME=/var/www');
+echo shell_exec('PM2_HOME=/var/www/.pm2 pm2 list 2>&1') ?: "no output\n";
 
 echo "\n=== Bot dir: auth_session folders ===\n";
 echo shell_exec('ls /var/www/whatsapp-ai/bot/ 2>&1');
