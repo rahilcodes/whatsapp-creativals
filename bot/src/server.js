@@ -1,13 +1,11 @@
 // ============================================================
 // server.js — Express API server (called by Laravel)
-// v3.1 — Multi-Tenant Edition
+// v3.0 — Multi-Tenant Edition
 //   All endpoints accept an optional tenant_id in body/header
 //   Defaults to tenant 1 for backwards compatibility
 // ============================================================
 import express from 'express';
 import cors from 'cors';
-import fs from 'fs';
-import path from 'path';
 import { sendMessage, reconnect, getStatus, getHealth, startWhatsApp } from './whatsapp.js';
 import { enqueueMessage } from './queue.js';
 import { log } from './utils.js';
@@ -74,18 +72,9 @@ app.post('/reconnect', authMiddleware, async (req, res) => {
 });
 
 // ── POST /start — Start a new tenant session ─────────────────
-// Always force=true and wipe stale session folder so a fresh
-// QR is always generated (handles paused / expired sessions).
 app.post('/start', authMiddleware, async (req, res) => {
   const tenantId = resolveTenantId(req);
   try {
-    // Wipe stale auth folder so Baileys doesn't silently try
-    // to resume an expired / logged-out session
-    const sessionDir = path.join(process.cwd(), `auth_session_${tenantId}`);
-    if (fs.existsSync(sessionDir)) {
-      fs.rmSync(sessionDir, { recursive: true, force: true });
-      log('info', `[T${tenantId}] Cleared stale auth session folder before fresh start`);
-    }
     await startWhatsApp(tenantId, true);
     res.json({ success: true, message: 'Session started', tenant_id: tenantId });
   } catch (err) {
