@@ -132,6 +132,9 @@ class AdminDashboardController extends Controller
                 'ai_enabled' => $aiEnabled,
                 'messages_today' => $messagesToday,
                 'last_active' => $lastActive,
+                'plan' => $tenant->plan,
+                'subscription_status' => $tenant->subscription_status,
+                'has_support_addon' => (bool) $tenant->has_support_addon,
             ];
         });
 

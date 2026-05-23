@@ -16,12 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
             'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'onboarded' => \App\Http\Middleware\RedirectIfOnboardingNotCompleted::class,
+            'subscribed' => \App\Http\Middleware\CheckSubscription::class,
         ]);
         $middleware->web(append: [
             \App\Http\Middleware\TenantMiddleware::class,
         ]);
         $middleware->api(append: [
             \App\Http\Middleware\TenantMiddleware::class,
+        ]);
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/razorpay',
         ]);
 
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {

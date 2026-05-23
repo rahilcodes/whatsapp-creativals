@@ -183,6 +183,33 @@
                                                     </template>
                                                 </div>
                                                 <div class="text-[10px] text-slate-500 mt-0.5" x-text="'ID: ' + tenant.id + ' | slug: ' + tenant.slug"></div>
+                                                <div class="flex flex-wrap items-center gap-1 mt-1">
+                                                    <!-- Plan Badge -->
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700 capitalize"
+                                                          :class="{
+                                                              'bg-indigo-500/15 border-indigo-500/30 text-indigo-400': tenant.plan === 'automator',
+                                                              'bg-slate-800 border-slate-700 text-slate-300': tenant.plan === 'starter'
+                                                          }"
+                                                          x-text="tenant.plan">
+                                                    </span>
+
+                                                    <!-- Subscription Status Badge -->
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-slate-800 border border-slate-700"
+                                                          :class="{
+                                                              'text-brand-400 border-brand-500/30 bg-brand-500/5': tenant.subscription_status === 'active',
+                                                              'text-amber-400 border-amber-500/30 bg-amber-500/5': tenant.subscription_status === 'trialing',
+                                                              'text-red-400 border-red-500/30 bg-red-500/5': ['expired', 'cancelled', 'past_due'].includes(tenant.subscription_status)
+                                                          }"
+                                                          x-text="tenant.subscription_status">
+                                                    </span>
+
+                                                    <!-- Support Add-on Badge -->
+                                                    <template x-if="tenant.has_support_addon">
+                                                        <span class="px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wider bg-purple-500/15 border border-purple-500/30 text-purple-400">
+                                                            👨‍💼 Support Setup
+                                                        </span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -471,6 +498,28 @@
                         <div class="py-2.5 flex justify-between">
                             <span class="text-slate-400">Database ID</span>
                             <span class="font-bold text-white" x-text="selectedTenant ? selectedTenant.id : ''"></span>
+                        </div>
+                        <div class="py-2.5 flex justify-between">
+                            <span class="text-slate-400">Subscription Plan</span>
+                            <span class="font-bold capitalize text-white" 
+                                  :class="selectedTenant && selectedTenant.plan === 'automator' ? 'text-indigo-400' : 'text-slate-300'"
+                                  x-text="selectedTenant ? selectedTenant.plan : ''"></span>
+                        </div>
+                        <div class="py-2.5 flex justify-between">
+                            <span class="text-slate-400">Subscription Status</span>
+                            <span class="font-bold capitalize" 
+                                  :class="{
+                                      'text-brand-400': selectedTenant && selectedTenant.subscription_status === 'active',
+                                      'text-amber-400': selectedTenant && selectedTenant.subscription_status === 'trialing',
+                                      'text-red-400': selectedTenant && ['expired', 'cancelled', 'past_due'].includes(selectedTenant.subscription_status)
+                                  }"
+                                  x-text="selectedTenant ? selectedTenant.subscription_status : ''"></span>
+                        </div>
+                        <div class="py-2.5 flex justify-between">
+                            <span class="text-slate-400">Onboarding Support</span>
+                            <span class="font-bold" 
+                                  :class="selectedTenant && selectedTenant.has_support_addon ? 'text-purple-400' : 'text-slate-500'"
+                                  x-text="selectedTenant && selectedTenant.has_support_addon ? '👨‍💼 Active' : 'None'"></span>
                         </div>
                         <div class="py-2.5 flex justify-between">
                             <span class="text-slate-400">Messages Today</span>

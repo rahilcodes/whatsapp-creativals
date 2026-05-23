@@ -20,7 +20,13 @@ Route::get('/refund-policy', function () {
     return view('legal.refund');
 })->name('refunds');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'subscribed', 'verified'])->group(function () {
+    // Billing Upgrade and Actions
+    Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
+    Route::post('/billing/subscribe', [\App\Http\Controllers\BillingController::class, 'createSubscription'])->name('billing.subscribe');
+    Route::post('/billing/support-addon', [\App\Http\Controllers\BillingController::class, 'purchaseSupportAddon'])->name('billing.support-addon');
+    Route::post('/billing/verify', [\App\Http\Controllers\BillingController::class, 'verifyPayment'])->name('billing.verify');
+
     // Onboarding Setup Wizard Routes
     Route::get('/onboarding', [\App\Http\Controllers\OnboardingController::class, 'index'])->name('onboarding.index');
     Route::post('/onboarding', [\App\Http\Controllers\OnboardingController::class, 'store'])->name('onboarding.store');
@@ -93,6 +99,9 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 Route::post('/admin/impersonate/stop', [AdminDashboardController::class, 'stopImpersonate'])
     ->name('admin.impersonate.stop')
     ->middleware('auth');
+
+// Webhooks
+Route::post('/webhooks/razorpay', [\App\Http\Controllers\Webhooks\RazorpayWebhookController::class, 'handle']);
 
 // Super Admin Routes
 use App\Http\Controllers\Admin\TenantController;

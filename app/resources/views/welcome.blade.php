@@ -297,7 +297,7 @@
         .pswitch::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;transition:transform .3s;}
         .pswitch.on::after{transform:translateX(21px);}
         .dbadge{background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:100px;}
-        .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+        .pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:860px;margin:0 auto;}
         .pcard{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:30px;position:relative;transition:all .3s;}
         .pcard.pop{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),0 24px 48px rgba(16,185,129,.15);}
         .pcard:hover{transform:translateY(-4px);}
@@ -966,17 +966,16 @@
             <!-- Plan 1: Starter -->
             <div class="pcard">
                 <div class="pname">Starter</div>
-                <div class="pprice" id="p1-price">₹999<span>/mo</span></div>
+                <div class="pprice" id="p1-price"><span class="original-price" style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹2,499</span>₹1,249<span style="vertical-align: middle;">/mo</span></div>
                 <div class="ptagline">Perfect for small local businesses starting with AI automation.</div>
                 <div class="pdiv"></div>
                 <ul class="pfeats">
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>1 WhatsApp Number</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Unlimited Messages</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Pre-built Business Memory</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>1 Connected WhatsApp number</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><strong>Unlimited AI messages</strong></li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Full Business Memory (FAQ engine)</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Live Chat Dashboard & Takeover</li>
                     <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>GPT-4o Powered</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Live Chat Dashboard</li>
-                    <li style="opacity:0.5;"><span class="pcx"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Premium Fast API</li>
-                    <li style="opacity:0.5;"><span class="pcx"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>White-label & CNAME</li>
+                    <li style="opacity:0.5;"><span class="pcx"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>Google Sheets Integration</li>
                 </ul>
                 @auth
                     <a href="{{ url('/dashboard') }}" class="pbtn out">Get Started Free</a>
@@ -984,47 +983,25 @@
                     <a href="{{ route('register') }}" class="pbtn out">Get Started Free</a>
                 @endauth
             </div>
-            <!-- Plan 2: Growth (Popular) -->
+            <!-- Plan 2: Automator (Popular) -->
             <div class="pcard pop">
                 <div class="popbadge">Most Popular</div>
-                <div class="pname">Growth</div>
-                <div class="pprice" id="p2-price">₹2,499<span>/mo</span></div>
-                <div class="ptagline">Best for growing shops, agencies, and clinics.</div>
+                <div class="pname">Automator</div>
+                <div class="pprice" id="p2-price"><span class="original-price" style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹5,999</span>₹2,999<span style="vertical-align: middle;">/mo</span></div>
+                <div class="ptagline">Best for business looking to sync memory and push leads to Sheets.</div>
                 <div class="pdiv"></div>
                 <ul class="pfeats">
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>3 WhatsApp Numbers</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Unlimited Messages</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Custom Training Prompt</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Premium Fast API</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><strong>Google Sheets read/write integration</strong></li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Sync Memory templates from Sheets</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Auto-append booking leads to Sheets</li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span><strong>Unlimited AI messages</strong></li>
+                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>1 Connected WhatsApp number</li>
                     <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Premium Live Support</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>AI Human Handover</li>
-                    <li style="opacity:0.5;"><span class="pcx"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>White-label & CNAME</li>
                 </ul>
                 @auth
                     <a href="{{ url('/dashboard') }}" class="pbtn sol">Upgrade Workspace</a>
                 @else
                     <a href="{{ route('register') }}" class="pbtn sol">Upgrade Workspace</a>
-                @endauth
-            </div>
-            <!-- Plan 3: Scale -->
-            <div class="pcard">
-                <div class="pname">Scale</div>
-                <div class="pprice" id="p3-price">₹7,999<span>/mo</span></div>
-                <div class="ptagline">For agencies and resellers wanting custom white-label branding.</div>
-                <div class="pdiv"></div>
-                <ul class="pfeats">
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>10 WhatsApp Numbers</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Unlimited Messages</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>All Models Access</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Full Reseller Control</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>White-label Branding</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Custom CNAME Domain</li>
-                    <li><span class="pck"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>Dedicated Account Manager</li>
-                </ul>
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="pbtn out">Connect Workspace</a>
-                @else
-                    <a href="{{ route('register') }}" class="pbtn out">Connect Workspace</a>
                 @endauth
             </div>
         </div>
@@ -1302,7 +1279,6 @@
     const lblY = document.getElementById('lbl-yearly');
     const p1 = document.getElementById('p1-price');
     const p2 = document.getElementById('p2-price');
-    const p3 = document.getElementById('p3-price');
 
     let isAnnual = false;
 
@@ -1313,13 +1289,11 @@
         lblY.classList.toggle('active');
 
         if (isAnnual) {
-            p1.innerHTML = '₹799<span>/mo</span>';
-            p2.innerHTML = '₹1,999<span>/mo</span>';
-            p3.innerHTML = '₹6,399<span>/mo</span>';
+            p1.innerHTML = '<span style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹1,999</span>₹999<span style="vertical-align: middle;">/mo</span>';
+            p2.innerHTML = '<span style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹4,799</span>₹2,399<span style="vertical-align: middle;">/mo</span>';
         } else {
-            p1.innerHTML = '₹999<span>/mo</span>';
-            p2.innerHTML = '₹2,499<span>/mo</span>';
-            p3.innerHTML = '₹7,999<span>/mo</span>';
+            p1.innerHTML = '<span style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹2,499</span>₹1,249<span style="vertical-align: middle;">/mo</span>';
+            p2.innerHTML = '<span style="text-decoration: line-through; color: var(--text3); font-size: 18px; font-weight: normal; margin-right: 8px; vertical-align: middle;">₹5,999</span>₹2,999<span style="vertical-align: middle;">/mo</span>';
         }
     });
 
