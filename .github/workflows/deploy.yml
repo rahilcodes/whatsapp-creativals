@@ -39,15 +39,24 @@ jobs:
             cd /var/www/whatsapp-ai/bot
             npm install
 
-            # Fix bot .env — ensure LARAVEL_URL points to local Laravel (not external domain)
-            sed -i 's|LARAVEL_URL=.*|LARAVEL_URL=http://127.0.0.1|' /var/www/whatsapp-ai/bot/.env
-            echo "Bot .env LARAVEL_URL is now: $(grep LARAVEL_URL /var/www/whatsapp-ai/bot/.env)"
+            # Fix bot .env — LARAVEL_URL must be HTTPS (Nginx redirects HTTP→HTTPS, breaking POST)
+            sed -i 's|LARAVEL_URL=.*|LARAVEL_URL=https://ichatup.com|' /var/www/whatsapp-ai/bot/.env
+            echo "LARAVEL_URL is now: $(grep LARAVEL_URL /var/www/whatsapp-ai/bot/.env)"
 
-            # Restart WhatsApp PM2 Process (absolute path, run from bot dir)
-            cd /var/www/whatsapp-ai/bot
+            # Restart WhatsApp PM2 Process
+            # Try multiple strategies in order:
+            # 1. Kill any stale whatsapp-engine processes
             pm2 stop whatsapp-engine 2>/dev/null || true
             pm2 delete whatsapp-engine 2>/dev/null || true
-            pm2 restart ichatup-bot 2>/dev/null || pm2 start /var/www/whatsapp-ai/bot/pm2.config.js --update-env
+            # 2. Restart ichatup-bot if it exists in PM2
+            if pm2 describe ichatup-bot > /dev/null 2>&1; then
+              echo "Restarting existing ichatup-bot process..."
+              pm2 restart ichatup-bot --update-env
+            else
+              echo "Starting fresh ichatup-bot from pm2.config.js..."
+              cd /var/www/whatsapp-ai/bot
+              pm2 start /var/www/whatsapp-ai/bot/pm2.config.js
+            fi
             pm2 save
 
             echo "=== PM2 Status ==="

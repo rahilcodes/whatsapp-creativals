@@ -18,6 +18,7 @@ module.exports = {
     {
       name: 'ichatup-bot',
       script: 'src/index.js',
+      cwd: '/var/www/whatsapp-ai/bot',
 
       // Run as ES module
       interpreter: 'node',
