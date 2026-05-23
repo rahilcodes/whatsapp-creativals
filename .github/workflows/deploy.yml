@@ -39,7 +39,12 @@ jobs:
             cd ../bot
             npm install
             
-            # Restart WhatsApp PM2 Process
-            pm2 restart whatsapp-engine || pm2 start src/index.js --name "whatsapp-engine"
+            # Restart WhatsApp PM2 Process (use pm2.config.js for correct name)
+            # Stop legacy 'whatsapp-engine' process if it exists (naming fix)
+            pm2 stop whatsapp-engine 2>/dev/null || true
+            pm2 delete whatsapp-engine 2>/dev/null || true
+            # Restart or start using the config file (process name: ichatup-bot)
+            pm2 restart ichatup-bot 2>/dev/null || pm2 start pm2.config.js
+            pm2 save
             
             echo "✅ DEPLOYMENT SUCCESSFUL!"
