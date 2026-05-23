@@ -136,6 +136,10 @@ class WhatsAppWebhookController extends Controller
             $savedFallback = $this->memory->saveMessage($phone, $jid, 'assistant', $fallback);
             $this->bot->sendReply($jid, $fallback, false, $savedFallback->id);
             ActivityLog::record('error', 'AI unavailable — fallback reply sent (check OpenAI quota/key)', $phone);
+
+            // Dispatch background lead intelligence and profiling job
+            \App\Jobs\ProcessLeadEngagement::dispatch($tenantId, $phone, $message);
+
             return response()->json(['status' => 'ai_fallback_sent']);
         }
 
@@ -144,6 +148,10 @@ class WhatsAppWebhookController extends Controller
             FlaggedConversation::flagPhone($phone, $result['flag_reason'] ?? 'ai_uncertain', $message);
             ActivityLog::record('human_flag', "AI uncertain — flagged for human ({$result['flag_reason']})", $phone);
             $this->notifyAdmins($phone, $result['flag_reason'] ?? 'ai_uncertain', $message);
+
+            // Dispatch background lead intelligence and profiling job
+            \App\Jobs\ProcessLeadEngagement::dispatch($tenantId, $phone, $message);
+
             return response()->json(['status' => 'flagged_uncertain']);
         }
 
@@ -155,6 +163,9 @@ class WhatsAppWebhookController extends Controller
         ActivityLog::record('ai_reply', "AI reply sent to {$phone}", $phone, [
             'preview' => substr($reply, 0, 80),
         ]);
+
+        // Dispatch background lead intelligence and profiling job
+        \App\Jobs\ProcessLeadEngagement::dispatch($tenantId, $phone, $message);
 
         // ── STEP 11: Background: update user summary every 10 msgs
         $msgCount = Message::where('phone', $phone)->count();

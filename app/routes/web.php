@@ -49,6 +49,9 @@ Route::middleware(['auth', 'subscribed', 'verified'])->group(function () {
         // App Routes
         Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
         
+        Route::get('/leads', [\App\Http\Controllers\LeadController::class, 'index'])->name('leads.index');
+        Route::get('/leads/{id}', [\App\Http\Controllers\LeadController::class, 'show'])->name('leads.show');
+
         Route::get('/chats', [\App\Http\Controllers\ChatController::class, 'index'])->name('chats.index');
         Route::get('/chats/{phone}', [\App\Http\Controllers\ChatController::class, 'show'])->name('chats.show');
         Route::post('/chats/{phone}/takeover', [\App\Http\Controllers\ChatController::class, 'toggleTakeover'])->name('chats.takeover');
