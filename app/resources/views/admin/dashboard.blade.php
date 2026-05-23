@@ -649,7 +649,7 @@
                                    @input="provisionForm.slug = provisionForm.slug.toLowerCase().replace(/[^a-z0-9\-]/g, '')"
                                    class="flex-1 text-xs px-3.5 py-2.5 rounded-l-lg border-r-0" />
                             <span class="px-3.5 py-2.5 rounded-r-lg border border-slate-700 bg-slate-900 text-slate-500 flex items-center select-none font-mono">
-                                .whatsapp-creativals.com
+                                .ichatup.com
                             </span>
                         </div>
                         <p class="text-[10px] text-slate-500 mt-1">Only lowercase alphanumeric characters and hyphens allowed.</p>
@@ -759,7 +759,7 @@
                             </div>
                             <div class="space-y-1">
                                 <span class="text-slate-500 block">Workspace Slug</span>
-                                <span class="font-bold text-slate-300" x-text="provisionForm.slug ? provisionForm.slug + '.whatsapp-creativals.com' : 'N/A'"></span>
+                                <span class="font-bold text-slate-300" x-text="provisionForm.slug ? provisionForm.slug + '.ichatup.com' : 'N/A'"></span>
                             </div>
                             <div class="space-y-1 mt-2">
                                 <span class="text-slate-500 block">Account Type</span>

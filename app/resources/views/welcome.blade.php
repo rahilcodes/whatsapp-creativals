@@ -1102,7 +1102,7 @@
         </div>
         <div class="fbot">
             <span>© {{ date('Y') }} iChatUp. All rights reserved locally.</span>
-            <span>From the Lab of <a href="https://creativals.com" target="_blank" style="color:var(--brand2);font-weight:600;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--brand3)'" onmouseout="this.style.color='var(--brand2)'">Creativals.com</a></span>
+            <span><a href="https://ichatup.com" style="color:var(--brand2);font-weight:600;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='var(--brand3)'" onmouseout="this.style.color='var(--brand2)'">iChatUp.com</a></span>
         </div>
     </div>
 </footer>
