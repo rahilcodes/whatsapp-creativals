@@ -80,6 +80,7 @@
     </div>
 
     {{-- Live Status Badge --}}
+    @if(Auth::check() && !Auth::user()->is_super_admin)
     <div class="px-4 py-3 mx-3 mt-3 rounded-lg" style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.15);">
         <div class="flex items-center justify-between">
             <span class="text-xs text-slate-400">WhatsApp</span>
@@ -89,6 +90,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Navigation --}}
     <nav class="flex-1 px-3 mt-4 space-y-1">
@@ -100,13 +102,14 @@
                     'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
                     'label' => 'Admin Panel'
                 ];
+            } else {
+                $navItems = [
+                    ['route' => 'dashboard',      'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', 'label' => 'Dashboard'],
+                    ['route' => 'chats.index',    'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'label' => 'Chats'],
+                    ['route' => 'settings.index', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', 'label' => 'AI Settings'],
+                    ['route' => 'business.index', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'label' => 'Business Memory'],
+                ];
             }
-            $navItems = array_merge($navItems, [
-                ['route' => 'dashboard',      'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', 'label' => 'Dashboard'],
-                ['route' => 'chats.index',    'icon' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', 'label' => 'Chats'],
-                ['route' => 'settings.index', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', 'label' => 'AI Settings'],
-                ['route' => 'business.index', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4', 'label' => 'Business Memory'],
-            ]);
         @endphp
 
         @foreach ($navItems as $item)
@@ -121,6 +124,7 @@
     </nav>
 
     {{-- Bot Toggle at Bottom --}}
+    @if(Auth::check() && !Auth::user()->is_super_admin)
     <div class="p-4 border-t" style="border-color:rgba(255,255,255,0.05);">
         <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-medium text-slate-400">AI Replies</span>
@@ -136,6 +140,7 @@
             <span>Reconnect WhatsApp</span>
         </button>
     </div>
+    @endif
 
     {{-- User Profile + Logout --}}
     <div class="p-4 border-t" style="border-color:rgba(255,255,255,0.05);">
@@ -162,6 +167,24 @@
 
 {{-- ── MAIN CONTENT ────────────────────────────────────────── --}}
 <main class="ml-64 flex-1 min-h-screen">
+    @if(session()->has('impersonator_id'))
+    <!-- Impersonation Banner -->
+    <div class="bg-indigo-600 text-white px-8 py-3 flex items-center justify-between text-xs font-semibold border-b border-indigo-700 bg-gradient-to-r from-indigo-600 to-emerald-600 shadow-md">
+        <div class="flex items-center gap-2.5">
+            <svg class="w-4.5 h-4.5 text-white animate-pulse" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>Impersonation Mode: Logged in as <strong class="text-white font-bold">{{ Auth::user()->name }}</strong> (Tenant: {{ Auth::user()->tenant->name ?? 'Client' }})</span>
+        </div>
+        <form method="POST" action="{{ route('admin.impersonate.stop') }}" class="m-0 inline-block">
+            @csrf
+            <button type="submit" class="bg-slate-950/40 hover:bg-slate-950/60 text-white px-3 py-1.5 rounded-lg transition-all border border-white/10 text-[11px] font-bold shadow-sm">
+                Return to Admin Panel
+            </button>
+        </form>
+    </div>
+    @endif
     {{-- Top Bar --}}
     <header class="sticky top-0 z-20 px-8 py-4 flex items-center justify-between"
             style="background:rgba(7,13,26,0.8);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.05);">
@@ -170,12 +193,14 @@
             <p class="text-xs text-slate-500">@yield('subtitle', 'WhatsApp AI Assistant')</p>
         </div>
         <div class="flex items-center gap-3">
+            @if(Auth::check() && !Auth::user()->is_super_admin)
             <div id="wa-status-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
                  style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
                 <div class="w-2 h-2 rounded-full bg-slate-500"></div>
                 <span class="text-slate-400">Checking...</span>
             </div>
             <div class="text-xs text-slate-500" id="last-updated">--</div>
+            @endif
             {{-- User Avatar Dropdown --}}
             <div class="relative pl-3 border-l border-slate-700" x-data="{ open: false }">
                 <button @click="open = !open" class="flex items-center gap-2 focus:outline-none">
@@ -232,6 +257,7 @@
 </main>
 
 {{-- ── GLOBAL SCRIPTS ───────────────────────────────────────── --}}
+@if(Auth::check() && !Auth::user()->is_super_admin)
 <script>
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -311,6 +337,7 @@
     pollStatus();
     setInterval(pollStatus, 5000);
 </script>
+@endif
 @stack('scripts')
 </body>
 </html>

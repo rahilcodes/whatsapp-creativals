@@ -20,8 +20,8 @@ class RedirectIfOnboardingNotCompleted
     {
         if (Auth::check()) {
             $user = Auth::user();
-            // If the user has verified their email but is not onboarded, redirect them
-            if ($user->hasVerifiedEmail() && !$user->onboarded) {
+            // If the user has verified their email but is not onboarded, redirect them (bypass for super admins)
+            if ($user->hasVerifiedEmail() && !$user->onboarded && !$user->is_super_admin) {
                 if (!$request->routeIs('onboarding.*') && !$request->routeIs('logout')) {
                     return redirect()->route('onboarding.index');
                 }

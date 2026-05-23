@@ -14,6 +14,10 @@ class DashboardController extends Controller
 
     public function index()
     {
+        if (\Illuminate\Support\Facades\Auth::user()->is_super_admin) {
+            return redirect()->route('admin.dashboard');
+        }
+
         \Illuminate\Support\Facades\Log::info('DashboardController: user_id=' . (\Illuminate\Support\Facades\Auth::id() ?? 'null') . ', tenant_id=' . app('tenant_id'));
 
         $waStatus    = WhatsappStatus::current();

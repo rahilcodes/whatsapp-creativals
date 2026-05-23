@@ -90,6 +90,10 @@ class GoogleAuthController extends Controller
         // Log the user in
         Auth::login($user, true);
 
+        if ($user->is_super_admin) {
+            return redirect()->route('admin.dashboard');
+        }
+
         // Redirect to dashboard
         return redirect()->intended(route('dashboard', absolute: false));
     }

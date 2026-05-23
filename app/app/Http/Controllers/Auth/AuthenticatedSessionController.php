@@ -26,9 +26,19 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+        if ($user && $user->is_super_admin) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'email' => 'Administrators must log in via the dedicated Admin Portal.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
-        $user = Auth::user();
         if ($user && $user->tenant_id) {
             app(\App\Services\BotService::class)->startSession($user->tenant_id);
         }

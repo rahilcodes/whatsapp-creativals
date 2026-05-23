@@ -134,16 +134,26 @@
                         <h3 class="text-sm font-semibold text-white">Tenants Registry</h3>
                         <p class="text-xs text-slate-500">Manage business workspaces and toggle statuses</p>
                     </div>
-                    <div class="relative w-full sm:w-64">
-                        <input type="text" 
-                               x-model="searchQuery" 
-                               placeholder="Search name or slug..." 
-                               class="w-full text-xs px-3.5 py-2 rounded-lg" />
-                        <span class="absolute right-3 top-2.5 text-slate-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <div class="relative w-full sm:w-64">
+                            <input type="text" 
+                                   x-model="searchQuery" 
+                                   placeholder="Search name or slug..." 
+                                   autocomplete="off"
+                                   class="w-full text-xs px-3.5 py-2 rounded-lg" />
+                            <span class="absolute right-3 top-2.5 text-slate-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <button @click="openProvisionWizard()" 
+                                class="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-lg transition-all text-xs flex items-center gap-1.5 shadow-md shadow-brand-500/10">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
                             </svg>
-                        </span>
+                            <span>Provision Tenant</span>
+                        </button>
                     </div>
                 </div>
 
@@ -202,6 +212,29 @@
                                     </td>
                                     <td class="px-6 py-4 text-slate-400 font-mono text-[10px]" x-text="tenant.last_active"></td>
                                     <td class="px-6 py-4 text-right space-x-1.5">
+                                        <!-- Login As Client -->
+                                        <form method="POST" :action="'/admin/impersonate/' + tenant.id" class="inline-block m-0">
+                                            @csrf
+                                            <button type="submit" 
+                                                    title="Login As Client"
+                                                    class="p-1 px-2 rounded bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-500/20 hover:text-indigo-300 transition-all text-[11px] inline-flex items-center gap-1 text-indigo-400">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                                </svg>
+                                                <span>Login</span>
+                                            </button>
+                                        </form>
+
+                                        <!-- Reboot WhatsApp -->
+                                        <button @click="reconnectTenantBot(tenant.id)" 
+                                                title="Reboot WhatsApp Socket"
+                                                class="p-1 px-2 rounded bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:text-amber-300 transition-all text-[11px] inline-flex items-center gap-1 text-amber-400">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                            </svg>
+                                            <span>Reboot</span>
+                                        </button>
+
                                         <!-- View Details -->
                                         <button @click="viewTenantDetails(tenant)" 
                                                 title="View Details"
@@ -458,29 +491,50 @@
                 <div class="space-y-3.5 pt-2">
                     <h4 class="font-semibold text-white uppercase text-[10px] tracking-wider text-slate-400">Admin Actions</h4>
                     
-                    <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="grid grid-cols-2 gap-3">
                         <!-- Toggle AI -->
                         <button @click="toggleTenantAi(selectedTenant.id); showModal = false;" 
-                                class="flex-1 p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2"
+                                class="p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2"
                                 :class="selectedTenant && selectedTenant.ai_enabled 
                                     ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300' 
                                     : 'bg-brand-500/10 border-brand-500/30 text-brand-400 hover:bg-brand-500/20'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                             </svg>
-                            <span x-text="selectedTenant && selectedTenant.ai_enabled ? 'Pause Tenant AI' : 'Resume Tenant AI'"></span>
+                            <span x-text="selectedTenant && selectedTenant.ai_enabled ? 'Pause AI' : 'Resume AI'"></span>
                         </button>
 
                         <!-- Toggle Pause -->
                         <button @click="togglePauseTenant(selectedTenant.id); showModal = false;" 
-                                class="flex-1 p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2"
+                                class="p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2"
                                 :class="selectedTenant && selectedTenant.status === 'suspended' 
                                     ? 'bg-brand-500/10 border-brand-500/30 text-brand-400 hover:bg-brand-500/20' 
                                     : 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                             </svg>
-                            <span x-text="selectedTenant && selectedTenant.status === 'suspended' ? 'Activate Tenant' : 'Suspend Tenant'"></span>
+                            <span x-text="selectedTenant && selectedTenant.status === 'suspended' ? 'Activate' : 'Suspend'"></span>
+                        </button>
+
+                        <!-- Login As Client -->
+                        <form method="POST" :action="'/admin/impersonate/' + selectedTenant.id" class="m-0 col-span-1" x-show="selectedTenant">
+                            @csrf
+                            <button type="submit" 
+                                    class="w-full p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/20">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                </svg>
+                                <span>Login as Client</span>
+                            </button>
+                        </form>
+
+                        <!-- Reboot WhatsApp -->
+                        <button @click="reconnectTenantBot(selectedTenant.id); showModal = false;" 
+                                class="p-2.5 rounded-lg border text-center font-medium transition-all text-xs flex items-center justify-center gap-2 bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            <span>Reboot WhatsApp</span>
                         </button>
                     </div>
                 </div>
@@ -493,6 +547,236 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- Tenant Provisioning Wizard Modal -->
+    <div x-show="showProvisionWizard" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all"
+         style="display: none;"
+         x-transition>
+        
+        <form @submit.prevent
+              @click.away="if(!isProvisioning) showProvisionWizard = false" 
+              class="card w-full max-w-xl overflow-hidden shadow-2xl border border-slate-800 max-h-[95vh] flex flex-col"
+              autocomplete="off">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-white">Manual Tenant Provisioning</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Wizard step <span x-text="wizardStep"></span> of 3</p>
+                </div>
+                <button x-show="!isProvisioning" @click="showProvisionWizard = false" class="text-slate-400 hover:text-white transition-colors p-1 rounded-lg bg-slate-800/40 hover:bg-slate-800 border border-slate-700">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="h-1 bg-slate-800 w-full relative">
+                <div class="h-full bg-brand-500 transition-all duration-300"
+                     :style="'width: ' + (wizardStep * 33.33) + '%'"></div>
+            </div>
+
+            <!-- Modal Body (Form Content) -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-4 text-xs">
+                <!-- Errors -->
+                <div x-show="provisionError" class="p-3.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-medium fade-in" style="display: none;">
+                    <span x-text="provisionError"></span>
+                </div>
+
+                <!-- STEP 1: Workspace Settings -->
+                <div x-show="wizardStep === 1" class="space-y-4 fade-in">
+                    <div>
+                        <label class="block text-slate-400 mb-1.5 font-medium">Tenant Name</label>
+                        <input type="text" x-model="provisionForm.tenant_name" placeholder="e.g. Acme Corporation" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-lg" />
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1.5 font-medium">Workspace Slug (Subdomain)</label>
+                        <div class="flex items-stretch">
+                            <input type="text" x-model="provisionForm.slug" placeholder="e.g. acme" 
+                                   @input="provisionForm.slug = provisionForm.slug.toLowerCase().replace(/[^a-z0-9\-]/g, '')"
+                                   class="flex-1 text-xs px-3.5 py-2.5 rounded-l-lg border-r-0" />
+                            <span class="px-3.5 py-2.5 rounded-r-lg border border-slate-700 bg-slate-900 text-slate-500 flex items-center select-none font-mono">
+                                .whatsapp-creativals.com
+                            </span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Only lowercase alphanumeric characters and hyphens allowed.</p>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1.5 font-medium">Account Type</label>
+                        <div class="grid grid-cols-2 gap-3.5">
+                            <!-- Business Card -->
+                            <div @click="provisionForm.account_type = 'business'" 
+                                 class="p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between"
+                                 :class="provisionForm.account_type === 'business' ? 'border-brand-500 bg-brand-500/5 text-white' : 'border-slate-800 hover:border-slate-700 text-slate-400'">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg" :class="provisionForm.account_type === 'business' ? 'bg-brand-500/10 text-brand-400' : 'bg-slate-900 text-slate-500'">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/>
+                                        </svg>
+                                    </span>
+                                    <div class="w-4 h-4 rounded-full border flex items-center justify-center" 
+                                         :class="provisionForm.account_type === 'business' ? 'border-brand-500 bg-brand-500' : 'border-slate-700'">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-slate-950" x-show="provisionForm.account_type === 'business'"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="font-bold block text-sm">Business Account</span>
+                                    <span class="text-[10px] text-slate-500 mt-1 block">For companies, shops, and business automation workflows.</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Personal Card -->
+                            <div @click="provisionForm.account_type = 'personal'" 
+                                 class="p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between"
+                                 :class="provisionForm.account_type === 'personal' ? 'border-brand-500 bg-brand-500/5 text-white' : 'border-slate-800 hover:border-slate-700 text-slate-400'">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="p-2 rounded-lg" :class="provisionForm.account_type === 'personal' ? 'bg-brand-500/10 text-brand-400' : 'bg-slate-900 text-slate-500'">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                                        </svg>
+                                    </span>
+                                    <div class="w-4 h-4 rounded-full border flex items-center justify-center" 
+                                         :class="provisionForm.account_type === 'personal' ? 'border-brand-500 bg-brand-500' : 'border-slate-700'">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-slate-950" x-show="provisionForm.account_type === 'personal'"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="font-bold block text-sm">Personal Brand</span>
+                                    <span class="text-[10px] text-slate-500 mt-1 block">For influencers, coaches, and individual creators.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Owner/Administrator Settings -->
+                <div x-show="wizardStep === 2" class="space-y-4 fade-in">
+                    <div>
+                        <label class="block text-slate-400 mb-1.5 font-medium">Administrator Name</label>
+                        <input type="text" x-model="provisionForm.user_name" placeholder="e.g. John Doe" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-lg" />
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1.5 font-medium">Email Address</label>
+                        <input type="email" x-model="provisionForm.email" placeholder="e.g. admin@acme.com" 
+                               autocomplete="off"
+                               class="w-full text-xs px-3.5 py-2.5 rounded-lg" />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-slate-400 mb-1.5 font-medium">Password</label>
+                            <input type="password" x-model="provisionForm.password" placeholder="Min. 8 characters" 
+                                   autocomplete="new-password"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-lg" />
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1.5 font-medium">Confirm Password</label>
+                            <input type="password" x-model="provisionForm.password_confirmation" placeholder="Repeat password" 
+                                   autocomplete="new-password"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-lg" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Setup Options & Onboarding Defaults -->
+                <div x-show="wizardStep === 3" class="space-y-4 fade-in">
+                    <!-- Pre-complete onboarding card toggle -->
+                    <div @click="provisionForm.pre_complete_onboarding = !provisionForm.pre_complete_onboarding" 
+                         class="p-4 rounded-xl border cursor-pointer transition-all flex items-start gap-3.5"
+                         :class="provisionForm.pre_complete_onboarding ? 'border-brand-500/40 bg-brand-500/5' : 'border-slate-800 bg-slate-900/10 hover:border-slate-700'">
+                        <div class="mt-0.5">
+                            <input type="checkbox" x-model="provisionForm.pre_complete_onboarding" class="accent-brand-500 rounded cursor-pointer" @click.stop />
+                        </div>
+                        <div>
+                            <span class="font-bold text-white block">Pre-complete Onboarding & Seed Defaults</span>
+                            <span class="text-[10px] text-slate-400 mt-1 block leading-relaxed">
+                                Auto-generate ready-to-use chatbot templates, fill default system prompts, enable the autopilot engine, and bypass the onboarding wizard so the client starts with a ready-to-run setup.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Review Panel -->
+                    <div class="p-4 rounded-xl border border-slate-800 bg-slate-950/40 space-y-3.5">
+                        <span class="font-bold text-white uppercase text-[10px] tracking-wider text-slate-400 block">Review Provision Details</span>
+                        
+                        <div class="grid grid-cols-2 gap-x-6 gap-y-2 border-t border-slate-800 pt-3 text-[11px]">
+                            <div class="space-y-1">
+                                <span class="text-slate-500 block">Tenant Name</span>
+                                <span class="font-bold text-slate-300" x-text="provisionForm.tenant_name || 'N/A'"></span>
+                            </div>
+                            <div class="space-y-1">
+                                <span class="text-slate-500 block">Workspace Slug</span>
+                                <span class="font-bold text-slate-300" x-text="provisionForm.slug ? provisionForm.slug + '.whatsapp-creativals.com' : 'N/A'"></span>
+                            </div>
+                            <div class="space-y-1 mt-2">
+                                <span class="text-slate-500 block">Account Type</span>
+                                <span class="font-bold text-slate-300 capitalize" x-text="provisionForm.account_type"></span>
+                            </div>
+                            <div class="space-y-1 mt-2">
+                                <span class="text-slate-500 block">Admin Username</span>
+                                <span class="font-bold text-slate-300" x-text="provisionForm.user_name || 'N/A'"></span>
+                            </div>
+                            <div class="col-span-2 space-y-1 mt-2">
+                                <span class="text-slate-500 block">Admin Email</span>
+                                <span class="font-bold text-slate-300" x-text="provisionForm.email || 'N/A'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-slate-800 bg-slate-900/30 flex items-center justify-between">
+                <div>
+                    <!-- Back Button -->
+                    <button x-show="wizardStep > 1 && !isProvisioning" 
+                            @click="wizardStep--" 
+                            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-white rounded-lg transition-colors text-xs font-semibold">
+                        Back
+                    </button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button x-show="!isProvisioning" 
+                            @click="showProvisionWizard = false" 
+                            class="px-4 py-2 bg-slate-950 text-slate-400 hover:text-white rounded-lg transition-colors text-xs font-semibold">
+                        Cancel
+                    </button>
+                    
+                    <!-- Next/Submit Button -->
+                    <button @click="nextWizardStep()" 
+                            :disabled="isProvisioning"
+                            class="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-lg transition-colors text-xs flex items-center gap-1.5 disabled:opacity-50">
+                        <span x-show="!isProvisioning" x-text="wizardStep === 3 ? 'Provision Workspace' : 'Continue'"></span>
+                        <span x-show="isProvisioning" class="flex items-center gap-1.5">
+                            <!-- Spinner Icon -->
+                            <svg class="animate-spin -ml-1 mr-1.5 h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Creating Workspace...</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Action Toast Notification -->
+    <div x-show="toast.show" 
+         x-transition
+         class="fixed bottom-5 right-5 z-50 p-4 rounded-xl border text-xs font-semibold shadow-2xl flex items-center gap-2.5 max-w-sm fade-in"
+         :class="{
+            'bg-brand-500/10 border-brand-500/30 text-brand-400': toast.type === 'success',
+            'bg-red-500/10 border-red-500/30 text-red-400': toast.type === 'error',
+            'bg-amber-500/10 border-amber-500/30 text-amber-400': toast.type === 'warning'
+         }"
+         style="display: none;">
+        <span x-text="toast.type === 'success' ? '✓' : '✕'" class="text-sm font-bold"></span>
+        <span x-text="toast.message"></span>
     </div>
 </div>
 @endsection
@@ -524,6 +808,27 @@
             globalAiEnabled: {{ $globalAiEnabled ? 'true' : 'false' }},
             alerts: [],
             chartInstance: null,
+
+            // Provisioning Wizard & Action toast states
+            showProvisionWizard: false,
+            wizardStep: 1,
+            provisionForm: {
+                tenant_name: '',
+                slug: '',
+                account_type: 'business',
+                user_name: '',
+                email: '',
+                password: '',
+                password_confirmation: '',
+                pre_complete_onboarding: true
+            },
+            isProvisioning: false,
+            provisionError: '',
+            toast: {
+                show: false,
+                message: '',
+                type: 'success'
+            },
 
             init() {
                 this.fetchStats();
@@ -665,6 +970,130 @@
                     t.name.toLowerCase().includes(query) || 
                     t.slug.toLowerCase().includes(query)
                 );
+            },
+
+            showToast(message, type = 'success') {
+                this.toast.message = message;
+                this.toast.type = type;
+                this.toast.show = true;
+                setTimeout(() => {
+                    this.toast.show = false;
+                }, 4000);
+            },
+
+            openProvisionWizard() {
+                this.provisionForm = {
+                    tenant_name: '',
+                    slug: '',
+                    account_type: 'business',
+                    user_name: '',
+                    email: '',
+                    password: '',
+                    password_confirmation: '',
+                    pre_complete_onboarding: true
+                };
+                this.provisionError = '';
+                this.wizardStep = 1;
+                this.showProvisionWizard = true;
+            },
+
+            nextWizardStep() {
+                if (this.wizardStep < 3) {
+                    if (this.wizardStep === 1) {
+                        if (!this.provisionForm.tenant_name.trim()) {
+                            this.provisionError = 'Tenant name is required.';
+                            return;
+                        }
+                        if (!this.provisionForm.slug.trim()) {
+                            this.provisionError = 'Slug is required.';
+                            return;
+                        }
+                        if (!/^[a-z0-9\-]+$/i.test(this.provisionForm.slug)) {
+                            this.provisionError = 'Slug can only contain letters, numbers, and hyphens.';
+                            return;
+                        }
+                    } else if (this.wizardStep === 2) {
+                        if (!this.provisionForm.user_name.trim()) {
+                            this.provisionError = 'User name is required.';
+                            return;
+                        }
+                        if (!this.provisionForm.email.trim()) {
+                            this.provisionError = 'Email address is required.';
+                            return;
+                        }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.provisionForm.email)) {
+                            this.provisionError = 'Please enter a valid email address.';
+                            return;
+                        }
+                        if (this.provisionForm.password.length < 8) {
+                            this.provisionError = 'Password must be at least 8 characters long.';
+                            return;
+                        }
+                        if (this.provisionForm.password !== this.provisionForm.password_confirmation) {
+                            this.provisionError = 'Passwords do not match.';
+                            return;
+                        }
+                    }
+                    this.provisionError = '';
+                    this.wizardStep++;
+                } else {
+                    this.submitProvisionForm();
+                }
+            },
+
+            async submitProvisionForm() {
+                this.isProvisioning = true;
+                this.provisionError = '';
+                try {
+                    let res = await fetch('{{ route('admin.tenants.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify(this.provisionForm)
+                    });
+                    let data = await res.json();
+                    if (data.success) {
+                        this.showProvisionWizard = false;
+                        this.fetchTenants();
+                        this.fetchStats();
+                        this.showToast(data.message, 'success');
+                    } else {
+                        this.provisionError = data.message || 'Provisioning failed.';
+                    }
+                } catch (e) {
+                    console.error("Failed submitting provisioning form:", e);
+                    this.provisionError = 'An error occurred during provisioning.';
+                } finally {
+                    this.isProvisioning = false;
+                }
+            },
+
+            async reconnectTenantBot(tenantId) {
+                if (!confirm('Are you sure you want to reboot this tenant\'s WhatsApp connection? This will restart their session on the bot server.')) {
+                    return;
+                }
+                try {
+                    let res = await fetch('{{ route('admin.reconnect-tenant') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ tenant_id: tenantId })
+                    });
+                    let data = await res.json();
+                    if (data.success) {
+                        this.showToast(data.message, 'success');
+                        this.fetchTenants();
+                    } else {
+                        this.showToast(data.message || 'Failed to reconnect.', 'error');
+                    }
+                } catch (e) {
+                    console.error("Failed rebooting socket connection:", e);
+                    this.showToast('An error occurred while attempting to reconnect.', 'error');
+                }
             },
 
             generateAlerts() {

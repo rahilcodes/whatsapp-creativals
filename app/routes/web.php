@@ -79,9 +79,23 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
+// Guest Admin Login Routes
+use App\Http\Controllers\Admin\AdminLoginController;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/admin/login', [AdminLoginController::class, 'login']);
+});
+
+// Impersonation stop route (needs general auth check but no super admin restriction)
+use App\Http\Controllers\Admin\AdminDashboardController;
+
+Route::post('/admin/impersonate/stop', [AdminDashboardController::class, 'stopImpersonate'])
+    ->name('admin.impersonate.stop')
+    ->middleware('auth');
+
 // Super Admin Routes
 use App\Http\Controllers\Admin\TenantController;
-use App\Http\Controllers\Admin\AdminDashboardController;
 
 Route::middleware(['auth', 'super.admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard',     [AdminDashboardController::class, 'dashboard'])->name('dashboard');
@@ -92,6 +106,12 @@ Route::middleware(['auth', 'super.admin'])->prefix('admin')->name('admin.')->gro
     Route::get('/activity',      [AdminDashboardController::class, 'activity'])->name('activity');
     Route::get('/system-health', [AdminDashboardController::class, 'systemHealth'])->name('system-health');
     
+    Route::post('/impersonate/{tenant}', [AdminDashboardController::class, 'impersonate'])->name('impersonate');
+    Route::post('/reconnect-tenant',     [AdminDashboardController::class, 'reconnectTenant'])->name('reconnect-tenant');
+    Route::post('/tenants/create',       [AdminDashboardController::class, 'storeTenant'])->name('tenants.store');
+    
     // Redirect old tenants list to dashboard
     Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
 });
+
+
