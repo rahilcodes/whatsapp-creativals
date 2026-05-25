@@ -21,7 +21,7 @@ class LocalTestSeeder extends Seeder
                 'status'              => 'active',
                 'plan'                => 'starter',
                 'subscription_status' => 'trialing',
-                'trial_ends_at'       => now()->addDays(30), // 30 days for testing
+                'trial_ends_at'       => now()->addDays(3), // 3 days for testing countdown banner
             ]
         );
 
@@ -41,7 +41,7 @@ class LocalTestSeeder extends Seeder
         $this->command->info("✅ Test account created:");
         $this->command->info("   Email:    test@ichatup.local");
         $this->command->info("   Password: password");
-        $this->command->info("   Trial:    30 days (expires " . now()->addDays(30)->format('d M Y') . ")");
+        $this->command->info("   Trial:    3 days (expires " . now()->addDays(3)->format('d M Y') . ")");
 
         // ── Seed sample leads ─────────────────────────────────
         $sampleLeads = [
