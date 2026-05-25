@@ -26,16 +26,17 @@ class LocalTestSeeder extends Seeder
         );
 
         // ── Create test user ──────────────────────────────────
-        $user = User::updateOrCreate(
-            ['email' => 'test@ichatup.local'],
-            [
-                'name'              => 'Test User',
-                'password'          => Hash::make('password'),
-                'tenant_id'         => $tenant->id,
-                'onboarded'         => true,
-                'email_verified_at' => now(),
-            ]
-        );
+        $user = User::where('email', 'test@ichatup.local')->first();
+        if (!$user) {
+            $user = new User();
+            $user->email = 'test@ichatup.local';
+        }
+        $user->name = 'Test User';
+        $user->password = Hash::make('password');
+        $user->onboarded = true;
+        $user->email_verified_at = now();
+        $user->tenant_id = $tenant->id;
+        $user->save();
 
         $this->command->info("✅ Test account created:");
         $this->command->info("   Email:    test@ichatup.local");
