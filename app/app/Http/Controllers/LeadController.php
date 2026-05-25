@@ -27,7 +27,6 @@ class LeadController extends Controller
                     $q->whereNull('captured_name')
                       ->orWhereNull('captured_email')
                       ->orWhere(function ($sq) {
-                          // Scraped phone is different or missing
                           $sq->whereNull('captured_phone');
                       });
                 });
@@ -45,6 +44,16 @@ class LeadController extends Controller
 
         if ($filter !== 'recent') {
             $query->orderByDesc('last_activity_at');
+        }
+
+        // JSON mode for auto-polling from the leads dashboard
+        if ($request->query('json') === '1') {
+            $leads = $query->limit(50)->get();
+            return response()->json([
+                'leads' => $leads,
+                'total' => $leads->count(),
+                'synced_at' => now()->toISOString(),
+            ]);
         }
 
         $leads = $query->paginate(20)->withQueryString();

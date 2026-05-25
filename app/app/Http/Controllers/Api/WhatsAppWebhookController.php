@@ -69,6 +69,26 @@ class WhatsAppWebhookController extends Controller
         }
         $this->memory->touchActivity($phone);
 
+        // ── STEP 2.5: Subscription / Trial check ─────────────
+        // Messages are always saved above so they appear in leads/chats.
+        // But AI replies are blocked when trial has expired or subscription
+        // is inactive — prevents free unlimited usage after trial ends.
+        $subStatus    = $tenant->subscription_status ?? 'trialing';
+        $trialExpired = ($subStatus === 'trialing')
+            && $tenant->trial_ends_at
+            && now()->gt($tenant->trial_ends_at);
+
+        if ($trialExpired) {
+            // Lazy-update status to 'expired' so dashboard reflects correctly
+            $tenant->subscription_status = 'expired';
+            $tenant->save();
+        }
+
+        if ($trialExpired || in_array($subStatus, ['expired', 'cancelled', 'past_due'])) {
+            ActivityLog::record('subscription_block', "AI reply blocked — trial/subscription expired for tenant {$tenantId}", $phone);
+            return response()->json(['status' => 'subscription_required']);
+        }
+
         // ── STEP 3: Human takeover active → skip AI ──────────
         if ($this->safety->hasHumanTakeover($phone)) {
             ActivityLog::record('human_takeover', "Human takeover active — AI skipped", $phone);

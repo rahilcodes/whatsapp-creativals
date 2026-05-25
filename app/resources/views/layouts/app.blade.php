@@ -200,21 +200,45 @@
             </div>
         @elseif(Auth::user()->tenant->subscription_status === 'trialing')
             @php
-                $hoursLeft = Auth::user()->tenant->trial_ends_at ? now()->diffInHours(Auth::user()->tenant->trial_ends_at, false) : 0;
-                $daysLeft = ceil($hoursLeft / 24);
-                $timeLeftText = $hoursLeft > 24 ? "{$daysLeft} days" : "{$hoursLeft} hours";
+                $tenant      = Auth::user()->tenant;
+                $hoursLeft   = $tenant->trialHoursLeft();
+                $daysLeft    = $tenant->trialDaysLeft();
+                $isLastDay   = $hoursLeft > 0 && $hoursLeft <= 24;
+                $isLast3Days = $hoursLeft > 0 && $hoursLeft <= 72;
+                $isActive    = $tenant->isTrialActive();
             @endphp
-            @if($hoursLeft > 0)
-                <!-- Trial Banner -->
-                <div class="bg-amber-600 text-white px-8 py-2.5 flex items-center justify-between text-xs font-semibold border-b border-amber-700 bg-gradient-to-r from-amber-500 to-amber-600 shadow-md">
+            @if($isActive)
+                {{-- Trial Active Banner --}}
+                <div class="text-white px-8 py-2.5 flex items-center justify-between text-xs font-semibold border-b
+                    {{ $isLastDay ? 'bg-red-600 border-red-700 bg-gradient-to-r from-red-600 to-red-700' : 'bg-amber-600 border-amber-700 bg-gradient-to-r from-amber-500 to-amber-600' }}
+                    shadow-md">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 {{ $isLastDay ? 'animate-pulse' : '' }}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                         </svg>
-                        <span>Trial Mode — You have <strong class="text-white font-bold">{{ $timeLeftText }}</strong> left on your free trial.</span>
+                        @if($isLastDay)
+                            <span>⚠️ <strong>Last {{ $hoursLeft }} hours</strong> of your free trial — upgrade now to keep AI replies running!</span>
+                        @elseif($isLast3Days)
+                            <span>Trial ending soon — <strong>{{ $daysLeft }} {{ $daysLeft === 1 ? 'day' : 'days' }} left</strong> on your free trial.</span>
+                        @else
+                            <span>Trial Mode — <strong>{{ $daysLeft }} days left</strong> on your free trial.</span>
+                        @endif
                     </div>
-                    <a href="{{ route('billing.index') }}" class="bg-slate-950/40 hover:bg-slate-950/60 text-white px-3 py-1.5 rounded-lg transition-all border border-white/10 text-[11px] font-bold shadow-sm">
-                        Upgrade Plan
+                    <a href="{{ route('billing.index') }}" class="bg-slate-950/40 hover:bg-slate-950/60 text-white px-3 py-1.5 rounded-lg transition-all border border-white/10 text-[11px] font-bold shadow-sm whitespace-nowrap">
+                        Upgrade Plan →
+                    </a>
+                </div>
+            @else
+                {{-- Trial Expired Banner --}}
+                <div class="bg-red-700 text-white px-8 py-2.5 flex items-center justify-between text-xs font-semibold border-b border-red-800 shadow-md animate-pulse">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+                        </svg>
+                        <span>🔴 Your free trial has <strong>expired</strong>. AI autoreplies are paused. Subscribe to re-enable.</span>
+                    </div>
+                    <a href="{{ route('billing.index') }}" class="bg-white text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold shadow-sm whitespace-nowrap">
+                        Subscribe Now →
                     </a>
                 </div>
             @endif

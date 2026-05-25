@@ -107,6 +107,14 @@ class OnboardingController extends Controller
             // 3. Mark User as Onboarded
             $user->onboarded = true;
             $user->save();
+
+            // 4. Start 7-day free trial from onboarding completion
+            //    (only set once — never reset it on re-onboarding)
+            if (!$tenant->trial_ends_at) {
+                $tenant->trial_ends_at       = now()->addDays(7);
+                $tenant->subscription_status = 'trialing';
+                $tenant->save();
+            }
         });
 
         return response()->json([
