@@ -31,9 +31,6 @@ class TenantMiddleware
         if ($tenantId) {
             \Illuminate\Support\Facades\Log::info('TenantMiddleware: Resolved tenant ID ' . $tenantId . ' for user ' . (\Illuminate\Support\Facades\Auth::id() ?? 'guest'));
             app()->instance('tenant_id', $tenantId);
-        } else {
-            \Illuminate\Support\Facades\Log::info('TenantMiddleware: Fallback to tenant ID 1 for user ' . (\Illuminate\Support\Facades\Auth::id() ?? 'guest'));
-            app()->instance('tenant_id', 1);
         }
 
         return $next($request);
