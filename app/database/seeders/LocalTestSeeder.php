@@ -26,7 +26,7 @@ class LocalTestSeeder extends Seeder
         );
 
         // ── Create test user ──────────────────────────────────
-        $user = User::firstOrCreate(
+        $user = User::updateOrCreate(
             ['email' => 'test@ichatup.local'],
             [
                 'name'              => 'Test User',
