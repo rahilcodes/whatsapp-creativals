@@ -82,6 +82,11 @@ sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/bootstrap/cache
 # 7. Start the background WhatsApp Engine
 pm2 stop whatsapp-engine || true
 pm2 start src/index.js --name "whatsapp-engine"
+
+# 8. Start the Laravel Queue Worker
+pm2 stop laravel-queue || true
+pm2 start artisan --name "laravel-queue" --interpreter php --cwd "/var/www/whatsapp-ai/app" -- queue:work --sleep=3 --tries=3
+
 pm2 save
 
 echo "=========================================================="

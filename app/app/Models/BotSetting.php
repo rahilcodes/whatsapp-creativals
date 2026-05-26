@@ -15,8 +15,8 @@ class BotSetting extends Model
 
     private static array $defaults = [
         'bot_enabled'             => '1',
-        'working_hours_start'     => '09:00',
-        'working_hours_end'       => '21:00',
+        'working_hours_start'     => '00:00',
+        'working_hours_end'       => '23:59',
         'delay_min'               => '3',
         'delay_max'               => '15',
         'per_user_cooldown'       => '30',
@@ -24,7 +24,7 @@ class BotSetting extends Model
         'memory_limit'            => '10',
         'system_prompt'           => "You are a friendly, professional business assistant. Keep your replies concise (1–4 lines), warm, and helpful. Never reveal you are an AI unless directly asked. Always stay on topic and refer to the business information provided.",
         'human_trigger_keywords'  => 'call,urgent,complaint,manager,refund,legal,police,emergency',
-        'outside_hours_message'   => "Hi! 👋 Our team is currently offline. We're available from 9 AM to 9 PM. We'll get back to you as soon as we're back! 😊",
+        'outside_hours_message'   => "Hi! 👋 Our team is currently offline. We'll get back to you as soon as possible! 😊",
     ];
 
     // ── Static helper: get setting by key ─────────────────────

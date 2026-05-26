@@ -88,6 +88,31 @@ class AIService
 
         if ($reply === null) return null;
 
+        // Parse and execute dynamic sheet write action if present
+        $writeActionData = null;
+        if (str_contains($reply, 'WRITE_ACTION:')) {
+            if (preg_match('/WRITE_ACTION:\s*(\{.*?\})/s', $reply, $matches)) {
+                $jsonBlock = trim($matches[1]);
+                $action = json_decode($jsonBlock, true);
+                if (is_array($action) && ($action['type'] ?? '') === 'write_sheet_row' && !empty($action['data'])) {
+                    $writeActionData = $action['data'];
+                }
+                // Strip the WRITE_ACTION block from the conversational reply
+                $reply = trim(str_replace($matches[0], '', $reply));
+            }
+        }
+
+        if ($writeActionData && $tenant = Tenant::find(app()->has('tenant_id') ? app('tenant_id') : null)) {
+            if ($tenant->google_sheet_id && $tenant->google_sheet_sync_mode === 'smart_read_write') {
+                try {
+                    app(GoogleSheetsService::class)->appendDynamicRow($tenant->google_sheet_id, $writeActionData);
+                    ActivityLog::record('sheets_action_written', "AI dynamically wrote a new row to Google Sheet ID {$tenant->google_sheet_id}");
+                } catch (\Throwable $e) {
+                    Log::error("Error executing dynamic sheet write from AI response: " . $e->getMessage());
+                }
+            }
+        }
+
         // Perform post-checks (uncertainty detection, length limits, human flags)
         $checkedResult = $this->postCheck($reply);
 
@@ -309,6 +334,71 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
 
         $prompt .= "=== BUSINESS INFORMATION & DATA ===\n";
         $prompt .= $businessMemory . "\n\n";
+
+        // Dynamic Tenant Predefined Payments Injection
+        $tenantId = app()->has('tenant_id') ? app('tenant_id') : null;
+        $tenant = $tenantId ? Tenant::find($tenantId) : null;
+        if ($tenant) {
+            $paymentInfo = [];
+            if ($tenant->upi_id) {
+                $paymentInfo[] = "- UPI ID: " . $tenant->upi_id;
+            }
+            if ($tenant->upi_number) {
+                $paymentInfo[] = "- UPI Mobile Number: " . $tenant->upi_number;
+            }
+            if ($tenant->bank_name || $tenant->bank_account_number || $tenant->bank_ifsc) {
+                $bankDetails = "- Direct Bank Transfer:\n";
+                if ($tenant->bank_name) $bankDetails .= "  * Bank Name: " . $tenant->bank_name . "\n";
+                if ($tenant->bank_account_number) $bankDetails .= "  * Account Number: " . $tenant->bank_account_number . "\n";
+                if ($tenant->bank_ifsc) $bankDetails .= "  * IFSC Code: " . $tenant->bank_ifsc;
+                $paymentInfo[] = trim($bankDetails);
+            }
+            if ($tenant->qr_code_path) {
+                $paymentInfo[] = "- Payment QR Code Scanner: Available. If the user explicitly asks for a payment scanner, scanner photo, or QR code image to scan, politely state the UPI/bank details above, and state that the scanner image is available for scanning.";
+            }
+
+            if (!empty($paymentInfo)) {
+                $prompt .= "=== PREDEFINED BUSINESS PAYMENT METHODS ===\n";
+                $prompt .= "If the customer asks for payment options, UPI ID, UPI number, direct bank transfer, or scanner, you MUST reply using the exact credentials below. Do NOT hallucinate alternate details under any circumstances:\n";
+                $prompt .= implode("\n", $paymentInfo) . "\n\n";
+            }
+
+            // Smart Sheets Live Injection
+            if ($tenant->google_sheet_id && $tenant->google_sheet_sync_mode === 'smart_read_write') {
+                $sheetId = $tenant->google_sheet_id;
+                try {
+                    $sheetData = \Illuminate\Support\Facades\Cache::remember("tenant_sheet_data_{$tenant->id}", 300, function() use ($sheetId) {
+                        return app(GoogleSheetsService::class)->getSheetValues($sheetId);
+                    });
+
+                    if (!empty($sheetData) && !empty($sheetData['headers'])) {
+                        // Compile sheet data into a readable grid
+                        $grid = "Columns: [" . implode(', ', $sheetData['headers']) . "]\nRows:\n";
+                        foreach ($sheetData['rows'] as $row) {
+                            $grid .= "- " . json_encode($row) . "\n";
+                        }
+
+                        $prompt .= "=== CONNECTED GOOGLE SHEET DATA (LIVE READ) ===\n";
+                        $prompt .= "You have real-time access to a connected spreadsheet dataset:\n";
+                        $prompt .= $grid . "\n";
+
+                        if ($tenant->google_sheet_instructions) {
+                            $prompt .= "=== CUSTOM SHEET BUSINESS LOGIC ===\n";
+                            $prompt .= "Use the following rules to query the data above or capture/write new records:\n";
+                            $prompt .= $tenant->google_sheet_instructions . "\n\n";
+                        }
+
+                        // Instruct the AI on how to write new rows
+                        $prompt .= "=== DYNAMIC WRITE SYSTEM DIRECTIVE ===\n";
+                        $prompt .= "If you need to save/write a new record to the sheet, you MUST return a valid JSON action block at the very end of your response matching this exact format:\n";
+                        $prompt .= "WRITE_ACTION: {\"type\": \"write_sheet_row\", \"data\": {\"Column Name 1\": \"value1\", \"Column Name 2\": \"value2\"}}\n";
+                        $prompt .= "Ensure the keys in 'data' match the sheet headers case-insensitively. Keep this block separate from your conversational reply so the system can parse it.\n\n";
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("Error injecting live sheets data in system prompt: " . $e->getMessage());
+                }
+            }
+        }
 
         if ($userSummary) {
             $prompt .= "=== WHAT WE KNOW ABOUT THIS USER (ACTIVE MEMORY) ===\n";

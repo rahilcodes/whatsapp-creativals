@@ -24,13 +24,13 @@
             <div>
                 <label class="block text-xs text-slate-400 mb-2">Start Time</label>
                 <input type="time" name="working_hours_start" required
-                    value="{{ $settings['working_hours_start'] ?? '09:00' }}"
+                    value="{{ $settings['working_hours_start'] ?? '00:00' }}"
                     class="w-full rounded-xl px-4 py-2.5 text-sm" />
             </div>
             <div>
                 <label class="block text-xs text-slate-400 mb-2">End Time</label>
                 <input type="time" name="working_hours_end" required
-                    value="{{ $settings['working_hours_end'] ?? '21:00' }}"
+                    value="{{ $settings['working_hours_end'] ?? '23:59' }}"
                     class="w-full rounded-xl px-4 py-2.5 text-sm" />
             </div>
         </div>

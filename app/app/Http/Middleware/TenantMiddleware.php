@@ -15,6 +15,14 @@ class TenantMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Prevent API polling routes from polluting the intended URL redirect on session expiry
+        if ($request->hasSession() && $request->session()->has('url.intended')) {
+            $intended = $request->session()->get('url.intended');
+            if (str_contains($intended, '/api/') || str_contains($intended, '/api-')) {
+                $request->session()->forget('url.intended');
+            }
+        }
+
         $tenantId = null;
 
         // If accessed via API/Webhook with a header

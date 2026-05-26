@@ -16,8 +16,8 @@ class GoogleSheetsService
     {
         $jsonPath = storage_path('app/google-service-account.json');
         
-        if (!file_exists($jsonPath)) {
-            Log::warning("Google Sheets Service Account credentials not found at: {$jsonPath}. Running in Mock / Standby Mode.");
+        if (!file_exists($jsonPath) || app()->environment('testing')) {
+            Log::info("Google Sheets Service Account: Running in Mock / Standby Mode due to missing key or testing environment.");
             return;
         }
 
@@ -32,6 +32,14 @@ class GoogleSheetsService
             $client->setAuthConfig($jsonPath);
             $client->addScope([\Google\Service\Sheets::SPREADSHEETS, \Google\Service\Drive::DRIVE]);
             $client->setAccessType('offline');
+
+            // Disable SSL verification on localhost to prevent Windows cURL error 60
+            if (config('app.env') === 'local') {
+                $guzzleClient = new \GuzzleHttp\Client([
+                    'verify' => false
+                ]);
+                $client->setHttpClient($guzzleClient);
+            }
 
             $this->client = $client;
             $this->isConfigured = true;
@@ -197,6 +205,149 @@ class GoogleSheetsService
 
         } catch (\Throwable $e) {
             Log::error("Google Sheets syncLeadToSheet Exception: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Initialize an existing sheet by writing the headers if they are missing.
+     */
+    public function initializeSheetHeaders(string $sheetId): bool
+    {
+        if (!$this->isConfigured) {
+            return true;
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            
+            // Check if headers exist
+            $range = 'Sheet1!A1:I1';
+            $response = $sheetsService->spreadsheets_values->get($sheetId, $range);
+            $values = $response->getValues();
+
+            if (empty($values) || empty($values[0])) {
+                $headerValues = [
+                    ['Captured Name', 'Phone Number', 'Email Address', 'Lead Score', 'Lifecycle Stage', 'Customer Intent', 'Customer Mood', 'Last Activity', 'Key Details / Summary']
+                ];
+
+                $body = new \Google\Service\Sheets\ValueRange([
+                    'values' => $headerValues
+                ]);
+
+                $sheetsService->spreadsheets_values->update($sheetId, 'Sheet1!A1:I1', $body, [
+                    'valueInputOption' => 'RAW'
+                ]);
+            }
+            return true;
+        } catch (\Throwable $e) {
+            Log::error("Google Sheets initializeSheetHeaders Exception: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Retrieve headers and rows dynamically from Sheet1.
+     */
+    public function getSheetValues(string $sheetId): array
+    {
+        if (!$this->isConfigured) {
+            // Mock data if in standby mode or testing
+            return [
+                'headers' => ['Roll Number', 'Student Name', 'Attendance', 'Marks'],
+                'rows' => [
+                    ['101', 'Rahul Kumar', '95%', '88'],
+                    ['102', 'Sarah Jones', '98%', '94'],
+                ]
+            ];
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            $response = $sheetsService->spreadsheets_values->get($sheetId, 'Sheet1!A:Z');
+            $values = $response->getValues() ?? [];
+
+            if (empty($values)) {
+                return [];
+            }
+
+            $headers = array_map('trim', $values[0]);
+            $rows = [];
+            for ($i = 1; $i < count($values); $i++) {
+                $rows[] = $values[$i];
+            }
+
+            return [
+                'headers' => $headers,
+                'rows' => $rows
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Google Sheets getSheetValues Exception: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Append a dynamic row to Sheet1 matching column headers.
+     */
+    public function appendDynamicRow(string $sheetId, array $rowData): bool
+    {
+        if (!$this->isConfigured) {
+            Log::info("Mock Sheets: Simulating dynamic append row for {$sheetId}: " . json_encode($rowData));
+            return true;
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            
+            // 1. Fetch current header row to map columns
+            $response = $sheetsService->spreadsheets_values->get($sheetId, 'Sheet1!A1:Z1');
+            $values = $response->getValues() ?? [];
+            
+            if (empty($values) || empty($values[0])) {
+                // No headers exist, let's treat the keys of $rowData as headers
+                $headers = array_keys($rowData);
+                
+                // Write headers
+                $body = new \Google\Service\Sheets\ValueRange([
+                    'values' => [$headers]
+                ]);
+                $sheetsService->spreadsheets_values->update($sheetId, 'Sheet1!A1', $body, [
+                    'valueInputOption' => 'RAW'
+                ]);
+            } else {
+                $headers = array_map('trim', $values[0]);
+            }
+
+            // 2. Map rowData keys to matching header indices
+            $rowValues = [];
+            foreach ($headers as $header) {
+                // Try case-insensitive matching
+                $foundValue = '';
+                foreach ($rowData as $key => $val) {
+                    if (strtolower(trim($key)) === strtolower($header)) {
+                        $foundValue = $val;
+                        break;
+                    }
+                }
+                $rowValues[] = $foundValue;
+            }
+
+            // 3. Append to Sheet1
+            $body = new \Google\Service\Sheets\ValueRange([
+                'values' => [$rowValues]
+            ]);
+
+            $sheetsService->spreadsheets_values->append($sheetId, 'Sheet1!A1', $body, [
+                'valueInputOption' => 'RAW',
+                'insertDataOption' => 'INSERT_ROWS'
+            ]);
+
+            Log::info("Google Sheets: Appended dynamic row to sheet {$sheetId}");
+            return true;
+
+        } catch (\Throwable $e) {
+            Log::error("Google Sheets appendDynamicRow Exception: " . $e->getMessage());
             return false;
         }
     }

@@ -19,8 +19,8 @@ return new class extends Migration
         // Seed defaults
         $defaults = [
             ['key' => 'bot_enabled',             'value' => '1'],
-            ['key' => 'working_hours_start',      'value' => '09:00'],
-            ['key' => 'working_hours_end',        'value' => '21:00'],
+            ['key' => 'working_hours_start',      'value' => '00:00'],
+            ['key' => 'working_hours_end',        'value' => '23:59'],
             ['key' => 'delay_min',                'value' => '3'],
             ['key' => 'delay_max',                'value' => '15'],
             ['key' => 'per_user_cooldown',        'value' => '30'],
@@ -28,7 +28,7 @@ return new class extends Migration
             ['key' => 'memory_limit',             'value' => '10'],
             ['key' => 'system_prompt',            'value' => "You are a friendly, professional business assistant. Keep your replies concise (1–4 lines), warm, and helpful. Never reveal you are an AI unless directly asked. Always stay on topic and refer to the business information provided."],
             ['key' => 'human_trigger_keywords',   'value' => 'call,urgent,complaint,manager,refund,legal,police,emergency'],
-            ['key' => 'outside_hours_message',    'value' => "Hi! 👋 Our team is currently offline. We're available from 9 AM to 9 PM. We'll get back to you as soon as we're back! 😊"],
+            ['key' => 'outside_hours_message',    'value' => "Hi! 👋 Our team is currently offline. We'll get back to you as soon as possible! 😊"],
         ];
 
         DB::table('bot_settings')->insert(array_map(fn($r) => array_merge($r, [

@@ -23,8 +23,8 @@ class SafetyService
     // ── Is current time within configured working hours? ─────
     public function isWithinWorkingHours(): bool
     {
-        $start = BotSetting::get('working_hours_start', '09:00');
-        $end   = BotSetting::get('working_hours_end', '21:00');
+        $start = BotSetting::get('working_hours_start', '00:00');
+        $end   = BotSetting::get('working_hours_end', '23:59');
         $now   = now()->format('H:i');
         return $now >= $start && $now <= $end;
     }

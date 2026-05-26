@@ -19,6 +19,14 @@ class Tenant extends Model
         'has_support_addon',
         'google_sheet_id',
         'google_sheet_email',
+        'upi_id',
+        'upi_number',
+        'bank_name',
+        'bank_account_number',
+        'bank_ifsc',
+        'qr_code_path',
+        'google_sheet_instructions',
+        'google_sheet_sync_mode',
     ];
 
     protected $casts = [

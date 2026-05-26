@@ -28,8 +28,8 @@ class BotStatusController extends Controller
             'node_running'    => $nodeUp,
             'last_connected'  => $wa->last_connected_at?->toIso8601String(),
             'working_hours'   => [
-                'start' => BotSetting::get('working_hours_start', '09:00'),
-                'end'   => BotSetting::get('working_hours_end', '21:00'),
+                'start' => BotSetting::get('working_hours_start', '00:00'),
+                'end'   => BotSetting::get('working_hours_end', '23:59'),
             ],
         ]);
     }

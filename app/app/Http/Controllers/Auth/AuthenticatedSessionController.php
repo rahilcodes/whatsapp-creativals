@@ -43,6 +43,13 @@ class AuthenticatedSessionController extends Controller
             app(\App\Services\BotService::class)->startSession($user->tenant_id);
         }
 
+        // Failsafe double-check for intended API URLs
+        $intended = redirect()->getIntendedUrl();
+        if ($intended && (str_contains($intended, '/api/') || str_contains($intended, '/api-'))) {
+            $request->session()->forget('url.intended');
+            return redirect()->route('dashboard');
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

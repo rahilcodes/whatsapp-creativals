@@ -60,6 +60,16 @@ Route::middleware(['auth', 'subscribed', 'verified'])->group(function () {
         Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
+        // Integrations & Payments Settings
+        Route::get('/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('integrations.index');
+        Route::post('/integrations/payments', [\App\Http\Controllers\IntegrationController::class, 'updatePayments'])->name('integrations.payments');
+        Route::post('/integrations/qr', [\App\Http\Controllers\IntegrationController::class, 'uploadQrCode'])->name('integrations.qr.upload');
+        Route::delete('/integrations/qr', [\App\Http\Controllers\IntegrationController::class, 'deleteQrCode'])->name('integrations.qr.delete');
+        Route::post('/integrations/sheets', [\App\Http\Controllers\IntegrationController::class, 'connectSheets'])->name('integrations.sheets');
+        Route::post('/integrations/sheets/connect', [\App\Http\Controllers\IntegrationController::class, 'connectExistingSheet'])->name('integrations.sheets.connect');
+        Route::delete('/integrations/sheets', [\App\Http\Controllers\IntegrationController::class, 'disconnectSheets'])->name('integrations.sheets.disconnect');
+        Route::post('/integrations/sheets/settings', [\App\Http\Controllers\IntegrationController::class, 'updateSheetsSettings'])->name('integrations.sheets.settings');
+
         Route::get('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'index'])->name('business.index');
         Route::post('/business', [\App\Http\Controllers\BusinessMemoryController::class, 'store'])->name('business.store');
         Route::put('/business/{id}', [\App\Http\Controllers\BusinessMemoryController::class, 'update'])->name('business.update');
