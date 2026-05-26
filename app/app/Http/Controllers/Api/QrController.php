@@ -12,7 +12,7 @@ class QrController extends Controller
 {
     private function checkSecret(Request $request): bool
     {
-        return $request->header('X-Bot-Secret') === env('SHARED_SECRET', 'whatsapp_ai_secret_2026');
+        return $request->header('X-Bot-Secret') === config('services.bot.secret');
     }
 
     // ── POST /api/qr — Node pushes QR here ───────────────────

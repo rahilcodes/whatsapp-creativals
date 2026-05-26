@@ -14,7 +14,7 @@ class ReceiptAnalyzerService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key', env('OPENAI_API_KEY', ''));
+        $this->apiKey = config('services.openai.key') ?: env('OPENAI_API_KEY', '');
     }
 
     /**

@@ -53,4 +53,18 @@ return [
         'plan_automator' => env('RAZORPAY_PLAN_AUTOMATOR', 'plan_automator_test'),
     ],
 
+    'bot' => [
+        'url' => env('BOT_URL', 'http://127.0.0.1:3000'),
+        'secret' => env('SHARED_SECRET', 'whatsapp_ai_secret_2026'),
+    ],
+
+    'admin' => [
+        'user' => env('ADMIN_USER', 'admin'),
+        'password' => env('ADMIN_PASSWORD', 'admin123'),
+    ],
+
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY', ''),
+    ],
+
 ];

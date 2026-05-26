@@ -14,8 +14,8 @@ class BotService
 
     public function __construct()
     {
-        $this->botUrl = rtrim(env('BOT_URL', 'http://127.0.0.1:3000'), '/');
-        $this->secret = env('SHARED_SECRET', 'whatsapp_ai_secret_2026');
+        $this->botUrl = rtrim(config('services.bot.url'), '/');
+        $this->secret = config('services.bot.secret');
     }
 
     // ── Resolve the current tenant ID from the container ────────

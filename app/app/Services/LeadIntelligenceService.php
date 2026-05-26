@@ -14,8 +14,8 @@ class LeadIntelligenceService
 
     public function __construct()
     {
-        $this->apiKey = config('services.openai.key', env('OPENAI_API_KEY', ''));
-        $this->geminiKey = env('GEMINI_API_KEY', '');
+        $this->apiKey = config('services.openai.key') ?: env('OPENAI_API_KEY', '');
+        $this->geminiKey = config('services.gemini.key');
     }
 
     /**

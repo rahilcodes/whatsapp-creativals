@@ -10,8 +10,8 @@ class AdminAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = env('ADMIN_USER', 'admin');
-        $pass = env('ADMIN_PASSWORD', 'admin123');
+        $user = config('services.admin.user');
+        $pass = config('services.admin.password');
 
         // Check Basic Auth credentials
         if ($request->getUser() !== $user || $request->getPassword() !== $pass) {

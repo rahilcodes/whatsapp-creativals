@@ -28,7 +28,7 @@ class WhatsAppWebhookController extends Controller
     public function receive(Request $request): JsonResponse
     {
         // Validate shared secret
-        if ($request->header('X-Bot-Secret') !== env('SHARED_SECRET', 'whatsapp_ai_secret_2026')) {
+        if ($request->header('X-Bot-Secret') !== config('services.bot.secret')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
@@ -253,7 +253,7 @@ class WhatsAppWebhookController extends Controller
     // ── POST /api/whatsapp/status (from Node bot) ─────────────
     public function statusUpdate(Request $request): JsonResponse
     {
-        if ($request->header('X-Bot-Secret') !== env('SHARED_SECRET', 'whatsapp_ai_secret_2026')) {
+        if ($request->header('X-Bot-Secret') !== config('services.bot.secret')) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
