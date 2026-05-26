@@ -87,6 +87,7 @@ fi
 sudo systemctl restart php8.2-fpm
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/storage
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/bootstrap/cache
+sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/database
 
 # 7. Start the background WhatsApp Engine
 pm2 stop whatsapp-engine || true
