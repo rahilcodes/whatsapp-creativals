@@ -148,7 +148,17 @@ export async function startWhatsApp(tenantId = 1, force = false) {
   const logger = pino({ level: 'silent' });
   const sessionDir = `auth_session_${tenantId}`;
   const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
-  const { version } = await fetchLatestBaileysVersion();
+  
+  let version = [6, 7, 18]; // Safe local fallback matching package.json version
+  try {
+    const latest = await Promise.race([
+      fetchLatestBaileysVersion(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout fetching Baileys version')), 4000))
+    ]);
+    version = latest.version;
+  } catch (err) {
+    log('warn', `[T${tenantId}] Failed to fetch latest Baileys version from GitHub, using fallback: ${version.join('.')}`, { error: err.message });
+  }
 
   log('info', `[T${tenantId}] Starting WhatsApp connection (Baileys v${version.join('.')})`, {
     reconnectCount: ts.reconnectCount,
@@ -362,7 +372,7 @@ export async function reconnect(tenantId = 1) {
 
   if (ts.sock) {
     try { ts.sock.ev.removeAllListeners(); } catch {}
-    try { await ts.sock.logout(); }          catch {}
+    try { ts.sock.end(); }                   catch {}
     ts.sock = null;
   }
 
