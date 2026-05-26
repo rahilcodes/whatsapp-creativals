@@ -82,6 +82,7 @@ EOF'
 sudo ln -sf /etc/nginx/sites-available/whatsapp-ai /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo systemctl restart nginx
+sudo systemctl restart php8.2-fpm
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/storage
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/bootstrap/cache
 
