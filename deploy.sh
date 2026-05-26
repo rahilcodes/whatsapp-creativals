@@ -44,8 +44,9 @@ npm install
 cp .env.example .env
 sed -i "s/LARAVEL_URL=.*/LARAVEL_URL=http:\/\/127.0.0.1/" .env
 
-# 6. Configure Nginx
-sudo bash -c 'cat > /etc/nginx/sites-available/whatsapp-ai <<EOF
+# 6. Configure Nginx (only if not already created)
+if [ ! -f /etc/nginx/sites-available/whatsapp-ai ]; then
+    sudo bash -c 'cat > /etc/nginx/sites-available/whatsapp-ai <<EOF
 server {
     listen 80;
     server_name 69.62.81.21;
@@ -79,9 +80,10 @@ server {
 }
 EOF'
 
-sudo ln -sf /etc/nginx/sites-available/whatsapp-ai /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo systemctl restart nginx
+    sudo ln -sf /etc/nginx/sites-available/whatsapp-ai /etc/nginx/sites-enabled/
+    sudo rm -f /etc/nginx/sites-enabled/default
+    sudo systemctl restart nginx
+fi
 sudo systemctl restart php8.2-fpm
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/storage
 sudo chown -R www-data:www-data /var/www/whatsapp-ai/app/bootstrap/cache
