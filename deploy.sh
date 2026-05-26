@@ -26,8 +26,12 @@ cd whatsapp-ai
 # 4. Set up Laravel Backend
 cd app
 composer install --optimize-autoloader --no-dev
-cp .env.example .env
-php artisan key:generate
+
+# Preserve live configuration (.env) on redeployment
+if [ ! -f .env ]; then
+    cp .env.example .env
+    php artisan key:generate
+fi
 sed -i 's/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/' .env
 touch database/database.sqlite
 php artisan migrate --force
