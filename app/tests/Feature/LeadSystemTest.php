@@ -222,4 +222,90 @@ class LeadSystemTest extends TestCase
         // Assert phone was saved and cleaned
         $this->assertEquals('+919999999999', $lead->captured_phone);
     }
+
+    public function test_media_cleanup_command(): void
+    {
+        app()->instance('tenant_id', $this->tenantA->id);
+
+        // Define directory & files
+        $dir = storage_path("app/public/receipts/{$this->tenantA->id}");
+        if (!file_exists($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $oldFilePath = "{$dir}/receipt_old.jpg";
+        $newFilePath = "{$dir}/receipt_new.jpg";
+
+        file_put_contents($oldFilePath, 'old_data');
+        file_put_contents($newFilePath, 'new_data');
+
+        $this->assertFileExists($oldFilePath);
+        $this->assertFileExists($newFilePath);
+
+        // Create messages in DB
+        $oldMsg = Message::create([
+            'phone' => '1234567890',
+            'jid' => '1234567890@s.whatsapp.net',
+            'role' => 'user',
+            'content' => '[IMAGE_RECEIPT]',
+            'image_path' => "storage/receipts/{$this->tenantA->id}/receipt_old.jpg",
+        ]);
+        // Set created_at back to 4 months ago
+        $oldMsg->created_at = now()->subMonths(4);
+        $oldMsg->save();
+
+        $newMsg = Message::create([
+            'phone' => '1234567890',
+            'jid' => '1234567890@s.whatsapp.net',
+            'role' => 'user',
+            'content' => '[IMAGE_RECEIPT]',
+            'image_path' => "storage/receipts/{$this->tenantA->id}/receipt_new.jpg",
+        ]);
+
+        // Run Artisan command
+        $this->artisan('media:cleanup')
+             ->expectsOutputToContain('cleanup finished')
+             ->assertExitCode(0);
+
+        // Assert old file deleted, db record cleared
+        $this->assertFileDoesNotExist($oldFilePath);
+        $this->assertNull($oldMsg->fresh()->image_path);
+
+        // Assert new file preserved, db record untouched
+        $this->assertFileExists($newFilePath);
+        $this->assertEquals("storage/receipts/{$this->tenantA->id}/receipt_new.jpg", $newMsg->fresh()->image_path);
+
+        // Cleanup files
+        if (file_exists($newFilePath)) {
+            unlink($newFilePath);
+        }
+        if (file_exists($oldFilePath)) {
+            unlink($oldFilePath);
+        }
+    }
+
+    public function test_google_sheets_sync_observer_dispatches_job(): void
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        app()->instance('tenant_id', $this->tenantA->id);
+
+        $lead = Lead::create([
+            'phone' => '9999999999',
+            'captured_name' => 'Sheets Sync Lead',
+            'lead_score' => 70,
+        ]);
+
+        // Assert job was dispatched
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\SyncLeadToGoogleSheet::class);
+
+        // Run the handler manually to verify mock standby/fallback behavior works beautifully
+        $sheetsService = app(\App\Services\GoogleSheetsService::class);
+        $job = new \App\Jobs\SyncLeadToGoogleSheet($lead);
+        
+        // This will verify that the mock standby logic runs cleanly
+        $job->handle($sheetsService);
+        
+        $this->assertTrue(true); // Verifies no exceptions were thrown
+    }
 }

@@ -120,4 +120,31 @@ class AIServiceTest extends TestCase
         $this->assertStringContainsString('Second Item', $cleaned);
         $this->assertStringContainsString('Third Item', $cleaned);
     }
+
+    public function test_simple_acknowledgement_bypass(): void
+    {
+        $context = [
+            'business_memory' => '',
+            'long_term'       => '',
+            'short_term'      => [],
+        ];
+
+        // 1. Test "thanks"
+        $result = $this->aiService->generateReply('919876543210', 'thank you so much!', $context);
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('very welcome', $result['reply']);
+        $this->assertEquals('acknowledgement', $result['intent']);
+
+        // 2. Test "ok"
+        $result = $this->aiService->generateReply('919876543210', 'ok got it', $context);
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('Awesome', $result['reply']);
+        $this->assertEquals('acknowledgement', $result['intent']);
+
+        // 3. Test thumbs up emoji
+        $result = $this->aiService->generateReply('919876543210', '👍', $context);
+        $this->assertNotNull($result);
+        $this->assertStringContainsString('Awesome', $result['reply']);
+        $this->assertEquals('acknowledgement', $result['intent']);
+    }
 }

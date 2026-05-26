@@ -10,6 +10,7 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
+  downloadMediaMessage,
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import axios from 'axios';
@@ -284,7 +285,27 @@ export async function startWhatsApp(tenantId = 1, force = false) {
       if (!jid || isGroupJid(jid)) continue;
 
       const phone     = jidToPhone(jid);
-      const text      = extractText(msg);
+      let text        = extractText(msg);
+      
+      // Smart Vision AI receipt detection (Phase 2)
+      const isImage   = !!(msg.message?.imageMessage);
+      let imageBase64 = null;
+
+      if (isImage) {
+        try {
+          log('info', `[T${tenantId}] Downloading image receipt...`, { phone });
+          const buffer = await downloadMediaMessage(msg, 'buffer', {});
+          if (buffer) {
+            imageBase64 = buffer.toString('base64');
+            if (!text) {
+              text = '[IMAGE_RECEIPT]'; // Set placeholder text if there is no caption
+            }
+          }
+        } catch (err) {
+          log('warn', `Failed to download image receipt`, { error: err.message, phone });
+        }
+      }
+
       if (!text) continue;
 
       const messageId = msg.key.id;
@@ -292,10 +313,15 @@ export async function startWhatsApp(tenantId = 1, force = false) {
         ? Number(msg.messageTimestamp)
         : Math.floor(Date.now() / 1000);
 
-      log('info', `[T${tenantId}] Incoming message`, { phone, preview: text.substring(0, 60) });
+      log('info', `[T${tenantId}] Incoming message`, { phone, preview: text.substring(0, 60), hasImage: isImage });
 
       await notifyLaravel('/api/whatsapp/message', {
-        phone, jid, message: text, message_id: messageId, timestamp,
+        phone, 
+        jid, 
+        message: text, 
+        message_id: messageId, 
+        timestamp,
+        image_payload: imageBase64
       }, tenantId);
     }
   });

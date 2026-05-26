@@ -45,7 +45,8 @@ class MemoryService
         string $jid,
         string $role,
         string $content,
-        ?string $waMessageId = null
+        ?string $waMessageId = null,
+        ?string $imagePath = null
     ): Message {
         return Message::create([
             'wa_message_id' => $waMessageId,
@@ -53,6 +54,7 @@ class MemoryService
             'phone'         => $phone,
             'role'          => $role,
             'content'       => $content,
+            'image_path'    => $imagePath,
         ]);
     }
 

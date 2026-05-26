@@ -16,6 +16,7 @@ class Message extends Model
         'phone',
         'role',
         'content',
+        'image_path',
         'flagged',
         'flag_reason',
     ];

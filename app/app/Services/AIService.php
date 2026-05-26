@@ -25,6 +25,22 @@ class AIService
     // ── Main entry: generate a reply for an incoming message ─
     public function generateReply(string $phone, string $userMessage, array $context): ?array
     {
+        // Smart Token Optimization: Check for simple acknowledgements locally (Phase 1)
+        $ackReply = $this->getAcknowledgementReply($userMessage);
+        if ($ackReply !== null) {
+            Log::info("Token Saver: Intercepted simple acknowledgment for {$phone}", ['message' => $userMessage]);
+            return [
+                'reply'         => $ackReply,
+                'flag_human'    => false,
+                'flag_reason'   => null,
+                'business_type' => $this->detectBusinessType($userMessage, $context),
+                'intent'        => 'acknowledgement',
+                'mood'          => 'neutral',
+                'state'         => 'engaged',
+                'objective'     => 'idle',
+            ];
+        }
+
         // 1. Detect the business type hierarchical resolution (Layer 1)
         $businessType = $this->detectBusinessType($userMessage, $context);
 
@@ -810,5 +826,58 @@ Generate the updated summary:";
         ]);
 
         return is_array($result) ? $result[0] : $result;
+    }
+
+    /**
+     * Smart Token Optimization: Check if incoming user message is a simple acknowledgment/emoji
+     * and return a friendly predefined local reply to bypass LLM calls.
+     */
+    private function getAcknowledgementReply(string $message): ?string
+    {
+        $clean = trim(strtolower(preg_replace('/[^\w\s\x{1F44D}\x{1F64F}]/u', '', $message)));
+        
+        // Exact or strong matches for thumbs up or folded hands emojis
+        if ($clean === '👍' || $clean === 'thumbs up' || $clean === 'like') {
+            return "Awesome! 👍 Let me know if you have any other questions.";
+        }
+        
+        if ($clean === '🙏' || $clean === 'folded hands' || $clean === 'praying') {
+            return "You are very welcome! 😊 Let me know if you need anything else.";
+        }
+
+        // Thank you matches (contains thanks/thank you and is short to protect margins)
+        if (strlen($clean) < 30 && (str_contains($clean, 'thank') || str_contains($clean, 'thanks') || str_contains($clean, 'grateful') || $clean === 'ty' || $clean === 'tq' || $clean === 'thx')) {
+            return "You are very welcome! 😊 Let me know if you need anything else.";
+        }
+
+        // Ok matches (starts with ok or got it and is short)
+        if (strlen($clean) < 25 && (
+            str_starts_with($clean, 'ok') || 
+            str_starts_with($clean, 'k') || 
+            str_contains($clean, 'got it') || 
+            str_contains($clean, 'gotit') || 
+            $clean === 'sure' || 
+            $clean === 'fine' || 
+            str_contains($clean, 'understood') || 
+            str_contains($clean, 'noted')
+        )) {
+            return "Awesome! 👍 Let me know if you have any other questions.";
+        }
+
+        // Great / perfect matches (starts with great, perfect, awesome and is short)
+        if (strlen($clean) < 25 && (
+            str_contains($clean, 'perfect') || 
+            str_contains($clean, 'great') || 
+            str_contains($clean, 'awesome') || 
+            str_contains($clean, 'cool') || 
+            str_contains($clean, 'nice') || 
+            str_contains($clean, 'super') || 
+            str_contains($clean, 'wonderful') || 
+            str_contains($clean, 'excellent')
+        )) {
+            return "Great! 😊 Let me know if I can help you with anything else.";
+        }
+
+        return null;
     }
 }

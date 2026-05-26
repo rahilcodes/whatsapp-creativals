@@ -17,6 +17,8 @@ class Tenant extends Model
         'razorpay_customer_id',
         'razorpay_subscription_id',
         'has_support_addon',
+        'google_sheet_id',
+        'google_sheet_email',
     ];
 
     protected $casts = [

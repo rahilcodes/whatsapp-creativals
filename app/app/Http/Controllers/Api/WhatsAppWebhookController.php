@@ -59,15 +59,45 @@ class WhatsAppWebhookController extends Controller
         // Log incoming
         ActivityLog::record('message_received', "Message from {$phone}", $phone, [
             'preview' => substr($message, 0, 80),
+            'has_image' => $request->has('image_payload') && !empty($request->input('image_payload')),
         ]);
+
+        // Capture and store image payload if present (Phase 2)
+        $imagePath = null;
+        if ($request->has('image_payload') && !empty($request->input('image_payload'))) {
+            $imagePath = $this->compressAndStoreImage($request->input('image_payload'), $tenantId);
+        }
 
         // ── STEP 2: Save incoming user message ────────────────
         try {
-            $this->memory->saveMessage($phone, $jid, 'user', $message, $messageId);
+            $this->memory->saveMessage($phone, $jid, 'user', $message, $messageId, $imagePath);
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
             return response()->json(['status' => 'duplicate_ignored']);
         }
         $this->memory->touchActivity($phone);
+
+        // ── STEP 2.2: Smart Vision AI Receipt Check (Phase 2) ───
+        if ($imagePath && $request->has('image_payload') && !empty($request->input('image_payload'))) {
+            try {
+                $analyzer = app(\App\Services\ReceiptAnalyzerService::class);
+                $visionReply = $analyzer->processReceiptForLead($phone, $request->input('image_payload'), $tenantId);
+                
+                if ($visionReply) {
+                    // Save reply & send to WhatsApp, bypassing standard AI generation entirely!
+                    $savedMessage = $this->memory->saveMessage($phone, $jid, 'assistant', $visionReply);
+                    $this->bot->sendReply($jid, $visionReply, false, $savedMessage->id);
+                    
+                    ActivityLog::record('ai_reply', "Smart Vision receipt reply sent to {$phone}", $phone);
+                    
+                    // Dispatch background lead intelligence and profiling job
+                    \App\Jobs\ProcessLeadEngagement::dispatch($tenantId, $phone, $message);
+                    
+                    return response()->json(['status' => 'ok', 'reply' => 'Receipt acknowledged']);
+                }
+            } catch (\Throwable $e) {
+                Log::error("Failed inside Smart Vision check: " . $e->getMessage());
+            }
+        }
 
         // ── STEP 2.5: Subscription / Trial check ─────────────
         // Messages are always saved above so they appear in leads/chats.
@@ -238,5 +268,61 @@ class WhatsAppWebhookController extends Controller
         ActivityLog::record('status_change', "WhatsApp status changed to: {$status} ({$reason})");
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * Smart Vision AI image receiver and native GD compressor.
+     * Compresses the receipt to max 800px width/height and saves it locally.
+     */
+    private function compressAndStoreImage(string $base64Data, int $tenantId): ?string
+    {
+        try {
+            $imgData = base64_decode($base64Data);
+            if (!$imgData) return null;
+
+            // Load image using native GD (Phase 2)
+            $srcImg = @imagecreatefromstring($imgData);
+            if (!$srcImg) {
+                Log::warning("GD Library could not parse base64 image data.");
+                return null;
+            }
+
+            $width = imagesx($srcImg);
+            $height = imagesy($srcImg);
+            $maxWidth = 800;
+
+            if ($width > $maxWidth) {
+                $newWidth = $maxWidth;
+                $newHeight = (int) ($height * ($maxWidth / $width));
+                $dstImg = imagescale($srcImg, $newWidth, $newHeight);
+                
+                ob_start();
+                imagejpeg($dstImg, null, 75); // 75% quality compression
+                $compressedData = ob_get_clean();
+                
+                imagedestroy($srcImg);
+                imagedestroy($dstImg);
+            } else {
+                ob_start();
+                imagejpeg($srcImg, null, 75);
+                $compressedData = ob_get_clean();
+                imagedestroy($srcImg);
+            }
+
+            // Save to storage
+            $filename = 'receipt_' . time() . '_' . uniqid() . '.jpg';
+            $directory = storage_path("app/public/receipts/{$tenantId}");
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $path = "{$directory}/{$filename}";
+            file_put_contents($path, $compressedData);
+
+            return "storage/receipts/{$tenantId}/{$filename}";
+        } catch (\Throwable $e) {
+            Log::error("Failed to compress and store image receipt: " . $e->getMessage());
+            return null;
+        }
     }
 }
