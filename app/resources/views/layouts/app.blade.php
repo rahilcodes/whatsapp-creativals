@@ -310,6 +310,19 @@
             ✕ {{ session('error') }}
         </div>
     @endif
+    @if ($errors->any())
+        <div class="mx-8 mt-4 px-5 py-3.5 rounded-lg text-xs font-semibold fade-in space-y-1.5"
+             style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);color:#f87171;">
+            @foreach ($errors->all() as $error)
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-red-500/80 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                    </svg>
+                    <span>{{ $error }}</span>
+                </div>
+            @endforeach
+        </div>
+    @endif
 
     <div class="p-8 fade-in">
         @yield('content')

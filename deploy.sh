@@ -7,7 +7,7 @@ sudo apt update
 sudo apt install -y nginx curl git unzip software-properties-common
 sudo add-apt-repository -y ppa:ondrej/php
 sudo apt update
-sudo apt install -y php8.2-fpm php8.2-cli php8.2-mysql php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip
+sudo apt install -y php8.2-fpm php8.2-cli php8.2-mysql php8.2-mbstring php8.2-xml php8.2-curl php8.2-zip php8.2-gd
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g pm2
@@ -31,6 +31,12 @@ php artisan key:generate
 sed -i 's/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/' .env
 touch database/database.sqlite
 php artisan migrate --force
+php artisan storage:link --force
+
+# Copy persistent credentials from secure location
+if [ -f /var/www/google-service-account.json ]; then
+    cp /var/www/google-service-account.json storage/app/google-service-account.json
+fi
 
 # 5. Set up Node.js Engine
 cd ../bot
