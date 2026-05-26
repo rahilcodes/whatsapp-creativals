@@ -19,6 +19,17 @@ rm composer-setup.php
 
 # 3. Clone code from GitHub
 cd /var/www
+
+# Backup existing .env and database if they exist before deleting
+if [ -f whatsapp-ai/app/.env ]; then
+    echo "💾 Backing up existing .env configuration..."
+    sudo cp whatsapp-ai/app/.env /var/www/whatsapp-ai-env.bak
+fi
+if [ -f whatsapp-ai/app/database/database.sqlite ]; then
+    echo "💾 Backing up existing SQLite database..."
+    sudo cp whatsapp-ai/app/database/database.sqlite /var/www/whatsapp-ai-db.bak
+fi
+
 sudo rm -rf whatsapp-ai
 sudo git clone https://github.com/rahilcodes/whatsapp-creativals.git whatsapp-ai
 cd whatsapp-ai
@@ -27,13 +38,26 @@ cd whatsapp-ai
 cd app
 composer install --optimize-autoloader --no-dev
 
-# Preserve live configuration (.env) on redeployment
-if [ ! -f .env ]; then
+# Restore live configuration (.env)
+if [ -f /var/www/whatsapp-ai-env.bak ]; then
+    echo "🔄 Restoring live .env configuration..."
+    sudo cp /var/www/whatsapp-ai-env.bak .env
+    sudo rm /var/www/whatsapp-ai-env.bak
+elif [ ! -f .env ]; then
     cp .env.example .env
     php artisan key:generate
 fi
 sed -i 's/DB_CONNECTION=mysql/DB_CONNECTION=sqlite/' .env
-touch database/database.sqlite
+
+# Restore live database
+if [ -f /var/www/whatsapp-ai-db.bak ]; then
+    echo "🔄 Restoring live SQLite database..."
+    sudo mkdir -p database
+    sudo cp /var/www/whatsapp-ai-db.bak database/database.sqlite
+    sudo rm /var/www/whatsapp-ai-db.bak
+else
+    touch database/database.sqlite
+fi
 php artisan migrate --force
 php artisan storage:link --force
 
@@ -41,6 +65,12 @@ php artisan storage:link --force
 if [ -f /var/www/google-service-account.json ]; then
     cp /var/www/google-service-account.json storage/app/google-service-account.json
 fi
+
+# Clear any cached configuration or routes to prevent stale .env variables
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
 
 # 5. Set up Node.js Engine
 cd ../bot
