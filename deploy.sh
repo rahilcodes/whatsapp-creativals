@@ -76,7 +76,16 @@ php artisan view:clear
 cd ../bot
 npm install
 cp .env.example .env
-sed -i "s/LARAVEL_URL=.*/LARAVEL_URL=http:\/\/127.0.0.1/" .env
+sed -i "s/LARAVEL_URL=.*/LARAVEL_URL=https:\/\/ichatup.com/" .env
+
+# Automatically sync SHARED_SECRET from Laravel's .env if it is defined there
+if [ -f ../app/.env ]; then
+    SECRET=$(grep "^SHARED_SECRET=" ../app/.env | cut -d '=' -f2- | tr -d '\r')
+    if [ ! -z "$SECRET" ]; then
+        echo "🔄 Syncing SHARED_SECRET to bot engine..."
+        sed -i "s/SHARED_SECRET=.*/SHARED_SECRET=$SECRET/" .env
+    fi
+fi
 
 # 6. Configure Nginx (only if not already created)
 if [ ! -f /etc/nginx/sites-available/whatsapp-ai ]; then
