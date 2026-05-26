@@ -784,8 +784,8 @@ RULES
 
         // Uncertain phrases → flag for human
         $uncertainPhrases = [
-            "i don't know", "i'm not sure", "i cannot", "i can't help",
-            "i do not know", "not sure", "unable to", "i apologize, but i",
+            "i don't know", "i'm not sure", "i can't help",
+            "i do not know", "not sure", "i apologize, but i",
         ];
         $lowerReply = strtolower($reply);
         foreach ($uncertainPhrases as $phrase) {
