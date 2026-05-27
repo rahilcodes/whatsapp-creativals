@@ -29,6 +29,11 @@ if [ -f whatsapp-ai/app/database/database.sqlite ]; then
     echo "💾 Backing up existing SQLite database..."
     sudo cp whatsapp-ai/app/database/database.sqlite /var/www/whatsapp-ai-db.bak
 fi
+if [ -d whatsapp-ai/bot ]; then
+    echo "💾 Backing up existing WhatsApp sessions..."
+    sudo mkdir -p /var/www/whatsapp-sessions-bak
+    sudo cp -r whatsapp-ai/bot/auth_session_* /var/www/whatsapp-sessions-bak/ 2>/dev/null || true
+fi
 
 sudo rm -rf whatsapp-ai
 sudo git clone https://github.com/rahilcodes/whatsapp-creativals.git whatsapp-ai
@@ -85,6 +90,13 @@ if [ -f ../app/.env ]; then
         echo "🔄 Syncing SHARED_SECRET to bot engine..."
         sed -i "s/SHARED_SECRET=.*/SHARED_SECRET=$SECRET/" .env
     fi
+fi
+
+# Restore live WhatsApp sessions
+if [ -d /var/www/whatsapp-sessions-bak ]; then
+    echo "🔄 Restoring live WhatsApp sessions..."
+    sudo cp -r /var/www/whatsapp-sessions-bak/* ./ 2>/dev/null || true
+    sudo rm -rf /var/www/whatsapp-sessions-bak
 fi
 
 # 6. Configure Nginx (only if not already created)

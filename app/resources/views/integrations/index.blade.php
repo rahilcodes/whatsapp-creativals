@@ -146,7 +146,7 @@
                                     </div>
                                     <textarea name="google_sheet_instructions" id="sheet-instructions-text" rows="5"
                                               class="w-full text-xs px-3.5 py-2.5 rounded-xl text-white bg-slate-950 border border-slate-800 focus:outline-none font-sans leading-relaxed"
-                                              placeholder="Explain how the AI should read and write data. Example: 'Sheet1 contains columns: Student Name, Roll Number, Marks. When a user provides their Roll Number, lookup their Marks and Attendance in the sheet...'"></textarea>
+                                              placeholder="Explain how the AI should read and write data. Example: 'Sheet1 contains columns: Student Name, Roll Number, Marks. When a user provides their Roll Number, lookup their Marks and Attendance in the sheet...'">{{ $tenant->google_sheet_instructions }}</textarea>
                                     <div class="text-[10px] text-slate-500 font-mono leading-relaxed mt-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800/40 flex items-start gap-2">
                                         <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 1 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.852l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
