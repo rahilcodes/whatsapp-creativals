@@ -340,7 +340,7 @@ export async function startWhatsApp(tenantId = 1, force = false) {
 }
 
 // ── Send a message via Baileys ────────────────────────────────
-export async function sendMessage(jid, text, tenantId = 1) {
+export async function sendMessage(jid, text, tenantId = 1, imageUrl = null) {
   const ts = getTenantState(tenantId);
   if (!ts.sock) throw new Error(`[T${tenantId}] Socket not initialized`);
   if (ts.sessionState !== STATE.CONNECTED) {
@@ -349,8 +349,17 @@ export async function sendMessage(jid, text, tenantId = 1) {
   if (ts.isAutomationPaused) {
     throw new Error(`[T${tenantId}] Automation paused — session is in ban-risk state`);
   }
-  await ts.sock.sendMessage(jid, { text });
-  log('info', `[T${tenantId}] Message sent`, { jid, preview: text.substring(0, 60) });
+  
+  if (imageUrl) {
+    await ts.sock.sendMessage(jid, { 
+      image: { url: imageUrl },
+      caption: text 
+    });
+  } else {
+    await ts.sock.sendMessage(jid, { text });
+  }
+  
+  log('info', `[T${tenantId}] Message sent`, { jid, preview: text.substring(0, 60), hasImage: !!imageUrl });
 }
 
 // ── Manual reconnect for a tenant ────────────────────────────

@@ -34,7 +34,7 @@ class BotService
     }
 
     // ── Send a WhatsApp reply via the Node.js bot (Enqueue) ───
-    public function sendReply(string $jid, string $text, bool $instant = false, ?int $messageId = null): bool
+    public function sendReply(string $jid, string $text, bool $instant = false, ?int $messageId = null, ?string $imageUrl = null): bool
     {
         $delayMin = $instant ? 0 : (int) BotSetting::get('delay_min', '3');
         $delayMax = $instant ? 0 : (int) BotSetting::get('delay_max', '15');
@@ -49,6 +49,7 @@ class BotService
                     'delay_min'  => $delayMin,
                     'delay_max'  => $delayMax,
                     'tenant_id'  => $this->tenantId(),
+                    'image_url'  => $imageUrl,
                 ]);
 
             if ($response->successful()) {

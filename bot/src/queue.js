@@ -13,7 +13,7 @@ const RETRY_BACKOFF_MS  = 10000; // 10 seconds between retries
 const WORKER_INTERVAL_MS = 2000; // Worker checks queue every 2s
 
 // ── Add a message to the queue ────────────────────────────────
-export function enqueueMessage(jid, text, messageId, delayMin, delayMax, tenantId = 1) {
+export function enqueueMessage(jid, text, messageId, delayMin, delayMax, tenantId = 1, imageUrl = null) {
   const id = messageId || `msg_${++messageCounter}_${Date.now()}`;
 
   queue.push({
@@ -26,6 +26,7 @@ export function enqueueMessage(jid, text, messageId, delayMin, delayMax, tenantI
     attempts:    0,
     nextRetryAt: Date.now(),
     status:      'pending', // pending | processing | failed
+    imageUrl,
   });
 
   log('info', `[T${tenantId}] Message enqueued [${id}] for ${jid.split('@')[0]}`, { queueLength: queue.length });
@@ -77,7 +78,7 @@ async function startWorker() {
           // Double-check connection right before sending
           if (getStatus(tenantId).status === 'connected') {
             msg.attempts++;
-            await sendMessage(msg.jid, msg.text, tenantId);
+            await sendMessage(msg.jid, msg.text, tenantId, msg.imageUrl);
             log('info', `[T${tenantId}] Queue [${msg.id}]: Delivered successfully`);
             queue.splice(nextMsgIndex, 1);
           } else {

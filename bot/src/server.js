@@ -43,7 +43,7 @@ app.get('/status', authMiddleware, (req, res) => {
 
 // ── POST /send — Enqueue a WhatsApp message ──────────────────
 app.post('/send', authMiddleware, (req, res) => {
-  const { jid, text, message_id, delay_min = 3, delay_max = 15 } = req.body;
+  const { jid, text, message_id, delay_min = 3, delay_max = 15, image_url = null } = req.body;
   const tenantId = resolveTenantId(req);
 
   if (!jid || !text) {
@@ -51,7 +51,7 @@ app.post('/send', authMiddleware, (req, res) => {
   }
 
   try {
-    const queueId = enqueueMessage(jid, text, message_id, delay_min, delay_max, tenantId);
+    const queueId = enqueueMessage(jid, text, message_id, delay_min, delay_max, tenantId, image_url);
     res.json({ success: true, message: 'Enqueued', queue_id: queueId, tenant_id: tenantId });
   } catch (err) {
     log('error', 'Enqueue failed', { error: err.message, tenantId });

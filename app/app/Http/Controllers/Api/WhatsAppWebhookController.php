@@ -170,7 +170,8 @@ class WhatsAppWebhookController extends Controller
         $context = $this->memory->buildContext($phone);
 
         try {
-            $result = $this->ai->generateReply($phone, $message, $context);
+            $imagePayload = $request->input('image_payload');
+            $result = $this->ai->generateReply($phone, $message, $context, $imagePayload);
         } catch (\Throwable $e) {
             Log::error('AI generation failed', ['error' => $e->getMessage(), 'phone' => $phone]);
             ActivityLog::record('error', 'AI generation failed: ' . $e->getMessage(), $phone);
@@ -207,8 +208,17 @@ class WhatsAppWebhookController extends Controller
 
         // ── STEP 10: Save reply & send ────────────────────────
         $reply = $result['reply'];
+        
+        $imageUrl = null;
+        if (str_contains($reply, '[SEND_QR]')) {
+            $reply = trim(str_replace('[SEND_QR]', '', $reply));
+            if ($tenant && $tenant->qr_code_path) {
+                $imageUrl = url($tenant->qr_code_path);
+            }
+        }
+        
         $savedMessage = $this->memory->saveMessage($phone, $jid, 'assistant', $reply);
-        $this->bot->sendReply($jid, $reply, false, $savedMessage->id);
+        $this->bot->sendReply($jid, $reply, false, $savedMessage->id, $imageUrl);
 
         ActivityLog::record('ai_reply', "AI reply sent to {$phone}", $phone, [
             'preview' => substr($reply, 0, 80),

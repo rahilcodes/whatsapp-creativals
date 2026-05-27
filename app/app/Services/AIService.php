@@ -23,7 +23,7 @@ class AIService
     }
 
     // ── Main entry: generate a reply for an incoming message ─
-    public function generateReply(string $phone, string $userMessage, array $context): ?array
+    public function generateReply(string $phone, string $userMessage, array $context, ?string $imagePayload = null): ?array
     {
         // Smart Token Optimization: Check for simple acknowledgements locally (Phase 1)
         $ackReply = $this->getAcknowledgementReply($userMessage);
@@ -66,7 +66,7 @@ class AIService
             $businessType
         );
 
-        $messages = $this->buildMessages($systemPrompt, $context['short_term'], $userMessage);
+        $messages = $this->buildMessages($systemPrompt, $context['short_term'], $userMessage, $imagePayload);
 
         // 5. Generate response using OpenAI (fallback to Gemini)
         $reply = null;
@@ -354,7 +354,7 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
                 $paymentInfo[] = trim($bankDetails);
             }
             if ($tenant->qr_code_path) {
-                $paymentInfo[] = "- Payment QR Code Scanner: Available. If the user explicitly asks for a payment scanner, scanner photo, or QR code image to scan, politely state the UPI/bank details above, and state that the scanner image is available for scanning.";
+                $paymentInfo[] = "- Payment QR Code Scanner: Available. If the user explicitly asks for a payment scanner, scanner photo, or QR code image to scan, politely state the UPI/bank details above, and you MUST include the exact token [SEND_QR] anywhere in your response text. The system will automatically intercept it and send the actual QR code scanner image directly to them.";
             }
 
             if (!empty($paymentInfo)) {
@@ -631,7 +631,7 @@ RULES
     }
 
     // ── Build OpenAI messages array ───────────────────────────
-    private function buildMessages(string $systemPrompt, array $shortTermMemory, string $userMessage): array
+    private function buildMessages(string $systemPrompt, array $shortTermMemory, string $userMessage, ?string $imagePayload = null): array
     {
         $messages = [['role' => 'system', 'content' => $systemPrompt]];
 
@@ -644,7 +644,25 @@ RULES
         }
 
         // Add the latest user message
-        $messages[] = ['role' => 'user', 'content' => $userMessage];
+        if ($imagePayload) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => $userMessage === '[IMAGE_RECEIPT]' ? 'The user sent an image. Analyze it and respond to their query or context.' : $userMessage
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => "data:image/jpeg;base64,{$imagePayload}"
+                        ]
+                    ]
+                ]
+            ];
+        } else {
+            $messages[] = ['role' => 'user', 'content' => $userMessage];
+        }
 
         return $messages;
     }
