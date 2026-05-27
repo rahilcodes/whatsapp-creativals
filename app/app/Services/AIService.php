@@ -421,6 +421,7 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
         $prompt .= "5. **Active Lead Collection**: If the customer shows intent to buy, book a call, get in touch, or has transitioned to lifecycle states INTERESTED or READY_TO_BUY, you MUST politely gather their Name, direct Mobile/WhatsApp number, and Email address. Do this progressively and naturally (e.g. ask for name and mobile number first, then ask for email to send calendar invites) to avoid creating high friction.\n\n";
 
         $prompt .= "=== CONSTANT RULES ===\n";
+        $prompt .= "- You have advanced vision capabilities and can see all photos or images the user sends. If an image is provided in the context, analyze its content, design, text, and details, and reply to the user's queries about it intelligently.\n";
         $prompt .= "- Reply in the SAME language the user writes in.\n";
         $prompt .= "- Keep replies SHORT (1–4 lines max). Do NOT write paragraphs.\n";
         $prompt .= "- Match user's language, be extremely warm, natural, and human-like — avoid sounding robotic.\n";
@@ -718,9 +719,22 @@ RULES
                     $systemText = $msg['content'];
                     continue;
                 }
+                
+                $text = '';
+                if (is_array($msg['content'])) {
+                    foreach ($msg['content'] as $part) {
+                        if (($part['type'] ?? '') === 'text') {
+                            $text = $part['text'];
+                            break;
+                        }
+                    }
+                } else {
+                    $text = $msg['content'];
+                }
+
                 $contents[] = [
                     'role'  => $msg['role'] === 'assistant' ? 'model' : 'user',
-                    'parts' => [['text' => $msg['content']]],
+                    'parts' => [['text' => $text]],
                 ];
             }
 
