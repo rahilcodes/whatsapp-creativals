@@ -152,9 +152,10 @@ class GoogleSheetsService
 
         try {
             $sheetsService = new \Google\Service\Sheets($this->client);
+            $sheetName = $this->getFirstSheetTitle($sheetId);
 
             // Fetch all current values in column B (Phone) to locate existing lead
-            $range = 'Sheet1!A:I';
+            $range = "{$sheetName}!A:I";
             $response = $sheetsService->spreadsheets_values->get($sheetId, $range);
             $rows = $response->getValues() ?? [];
 
@@ -186,14 +187,14 @@ class GoogleSheetsService
 
             if ($leadRowIndex !== -1) {
                 // Update existing row
-                $updateRange = "Sheet1!A{$leadRowIndex}:I{$leadRowIndex}";
+                $updateRange = "{$sheetName}!A{$leadRowIndex}:I{$leadRowIndex}";
                 $sheetsService->spreadsheets_values->update($sheetId, $updateRange, $body, [
                     'valueInputOption' => 'RAW'
                 ]);
                 Log::info("Google Sheets: Updated row {$leadRowIndex} for lead {$lead->phone} in sheet {$sheetId}.");
             } else {
                 // Append new row
-                $appendRange = 'Sheet1!A1';
+                $appendRange = "{$sheetName}!A1";
                 $sheetsService->spreadsheets_values->append($sheetId, $appendRange, $body, [
                     'valueInputOption' => 'RAW',
                     'insertDataOption' => 'INSERT_ROWS'
@@ -220,9 +221,10 @@ class GoogleSheetsService
 
         try {
             $sheetsService = new \Google\Service\Sheets($this->client);
+            $sheetName = $this->getFirstSheetTitle($sheetId);
             
             // Check if headers exist
-            $range = 'Sheet1!A1:I1';
+            $range = "{$sheetName}!A1:I1";
             $response = $sheetsService->spreadsheets_values->get($sheetId, $range);
             $values = $response->getValues();
 
@@ -235,7 +237,7 @@ class GoogleSheetsService
                     'values' => $headerValues
                 ]);
 
-                $sheetsService->spreadsheets_values->update($sheetId, 'Sheet1!A1:I1', $body, [
+                $sheetsService->spreadsheets_values->update($sheetId, "{$sheetName}!A1:I1", $body, [
                     'valueInputOption' => 'RAW'
                 ]);
             }
@@ -264,7 +266,8 @@ class GoogleSheetsService
 
         try {
             $sheetsService = new \Google\Service\Sheets($this->client);
-            $response = $sheetsService->spreadsheets_values->get($sheetId, 'Sheet1!A:Z');
+            $sheetName = $this->getFirstSheetTitle($sheetId);
+            $response = $sheetsService->spreadsheets_values->get($sheetId, "{$sheetName}!A:Z");
             $values = $response->getValues() ?? [];
 
             if (empty($values)) {
@@ -299,9 +302,10 @@ class GoogleSheetsService
 
         try {
             $sheetsService = new \Google\Service\Sheets($this->client);
+            $sheetName = $this->getFirstSheetTitle($sheetId);
             
             // 1. Fetch current header row to map columns
-            $response = $sheetsService->spreadsheets_values->get($sheetId, 'Sheet1!A1:Z1');
+            $response = $sheetsService->spreadsheets_values->get($sheetId, "{$sheetName}!A1:Z1");
             $values = $response->getValues() ?? [];
             
             if (empty($values) || empty($values[0])) {
@@ -312,7 +316,7 @@ class GoogleSheetsService
                 $body = new \Google\Service\Sheets\ValueRange([
                     'values' => [$headers]
                 ]);
-                $sheetsService->spreadsheets_values->update($sheetId, 'Sheet1!A1', $body, [
+                $sheetsService->spreadsheets_values->update($sheetId, "{$sheetName}!A1", $body, [
                     'valueInputOption' => 'RAW'
                 ]);
             } else {
@@ -338,7 +342,7 @@ class GoogleSheetsService
                 'values' => [$rowValues]
             ]);
 
-            $sheetsService->spreadsheets_values->append($sheetId, 'Sheet1!A1', $body, [
+            $sheetsService->spreadsheets_values->append($sheetId, "{$sheetName}!A1", $body, [
                 'valueInputOption' => 'RAW',
                 'insertDataOption' => 'INSERT_ROWS'
             ]);
@@ -350,5 +354,26 @@ class GoogleSheetsService
             Log::error("Google Sheets appendDynamicRow Exception: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Resolves the name of the first tab/sheet in the spreadsheet dynamically.
+     * Defaults to 'Sheet1' if it fails.
+     */
+    private function getFirstSheetTitle(string $sheetId): string
+    {
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            $spreadsheet = $sheetsService->spreadsheets->get($sheetId);
+            $sheets = $spreadsheet->getSheets();
+            if (!empty($sheets) && isset($sheets[0])) {
+                $title = $sheets[0]->getProperties()->getTitle();
+                Log::info("Google Sheets: Resolved first sheet tab title dynamically as '{$title}' for spreadsheet {$sheetId}.");
+                return $title;
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Google Sheets: Failed to resolve first sheet title for {$sheetId}, falling back to 'Sheet1': " . $e->getMessage());
+        }
+        return 'Sheet1';
     }
 }

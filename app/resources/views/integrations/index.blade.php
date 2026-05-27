@@ -207,8 +207,8 @@
                         <div class="mt-3 p-3 rounded-xl border border-slate-800/80 bg-slate-950/40">
                             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">1. Share your sheet with:</span>
                             <div class="flex items-center justify-between gap-2 mt-1.5 bg-slate-950 p-2 rounded-lg border border-slate-850 font-mono text-[10px]">
-                                <span class="text-slate-300 select-all truncate">ichatup-sheet-manager@whatsapp-bot-496805.iam.gserviceaccount.com</span>
-                                <button type="button" onclick="navigator.clipboard.writeText('ichatup-sheet-manager@whatsapp-bot-496805.iam.gserviceaccount.com'); alert('Service account email copied to clipboard!');" 
+                                <span class="text-slate-300 select-all truncate">{{ $serviceAccountEmail ?? 'ichatup-sheet-manager@whatsapp-bot-496805.iam.gserviceaccount.com' }}</span>
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ $serviceAccountEmail ?? 'ichatup-sheet-manager@whatsapp-bot-496805.iam.gserviceaccount.com' }}'); alert('Service account email copied to clipboard!');" 
                                         class="text-[9px] text-emerald-450 hover:text-emerald-300 font-sans font-bold flex-shrink-0 hover:underline">
                                     Copy
                                 </button>

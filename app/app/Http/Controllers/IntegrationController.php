@@ -23,7 +23,15 @@ class IntegrationController extends Controller
     {
         $tenant = Auth::user()->tenant;
         $isSheetsConfigured = $this->sheetsService->isConfigured();
-        return view('integrations.index', compact('tenant', 'isSheetsConfigured'));
+        
+        $serviceAccountEmail = null;
+        $jsonPath = storage_path('app/google-service-account.json');
+        if (file_exists($jsonPath)) {
+            $config = json_decode(@file_get_contents($jsonPath), true);
+            $serviceAccountEmail = $config['client_email'] ?? null;
+        }
+
+        return view('integrations.index', compact('tenant', 'isSheetsConfigured', 'serviceAccountEmail'));
     }
 
     /**
