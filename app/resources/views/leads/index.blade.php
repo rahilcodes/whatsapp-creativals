@@ -67,7 +67,7 @@
                 {{-- Polled leads table body (replaced every 30s by Alpine) --}}
                 <tbody class="divide-y divide-slate-800/40" id="leads-tbody">
                     @forelse ($leads as $lead)
-                    <tr class="hover:bg-slate-900/30 cursor-pointer transition-colors" @click="openLead({{ $lead->id }})">
+                    <tr class="hover:bg-slate-900/30 cursor-pointer transition-colors" onclick="window.location.href = '{{ route('chats.show', $lead->phone) }}'">
                         <td class="px-6 py-4">
                             <span class="font-medium text-slate-200 block truncate max-w-[150px]">
                                 {{ $lead->captured_name ?? 'N/A' }}
@@ -364,7 +364,7 @@ function leadsPanel() {
                 return `<tr data-phone="${lead.phone}" 
                             data-id="${lead.id}"
                             class="hover:bg-slate-900/30 cursor-pointer transition-colors ${isNew ? 'animate-pulse-once bg-emerald-900/10' : ''}"
-                            onclick="document.querySelector('[x-data]').__x.$data.openLead(${lead.id})">
+                            onclick="window.location.href = '/chats/${lead.phone}'">
                     <td class="px-6 py-4">
                         <span class="font-medium text-slate-200 block truncate max-w-[150px]">${lead.captured_name || 'N/A'}</span>
                         ${lead.business_type ? `<span class="text-[9px] text-brand-400 font-mono tracking-wider block capitalize">${lead.business_type.replace(/_/g,' ')}</span>` : ''}
