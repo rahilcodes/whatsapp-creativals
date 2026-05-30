@@ -2,7 +2,43 @@
 @section('title', 'Subscription & Billing')
 @section('subtitle', 'Manage your plans and integrations')
 
+@php
+    $reseller = app()->bound('active_reseller') ? app('active_reseller') : null;
+    $showBilling = $reseller ? (bool)$reseller->show_billing : true;
+    $brandPrimary = $reseller?->primary_color ?? '#10b981';
+    $appName = $reseller?->name ?? 'iChatUp';
+    
+    $starterPriceValue = $reseller && $reseller->plan_starter_price !== null ? $reseller->plan_starter_price / 100 : 1249;
+    $automatorPriceValue = $reseller && $reseller->plan_automator_price !== null ? $reseller->plan_automator_price / 100 : 2999;
+    
+    $starterName = $reseller?->plan_starter_name ?: 'Starter';
+    $automatorName = $reseller?->plan_automator_name ?: 'Automator';
+    
+    $currency = $reseller?->billing_currency ?: 'INR';
+    $currencySymbol = $currency === 'INR' ? '₹' : ($currency === 'USD' ? '$' : $currency . ' ');
+@endphp
+
 @section('content')
+@if(!$showBilling)
+    <div class="card p-8 text-center max-w-xl mx-auto my-12 space-y-4">
+        <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-400">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"/>
+            </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white">Billing Dashboard Locked</h2>
+        <p class="text-slate-400 text-sm leading-relaxed">
+            Billing and subscription management is handled directly by your provider. Please reach out to support for upgrades, renewals, or payment queries.
+        </p>
+        @if($reseller && $reseller->support_email)
+            <div class="pt-4">
+                <a href="mailto:{{ $reseller->support_email }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-lg text-xs transition-colors">
+                    Contact Support
+                </a>
+            </div>
+        @endif
+    </div>
+@else
 <div class="space-y-6" x-data="billingPortal()">
     
     {{-- Status Banner --}}
@@ -53,16 +89,21 @@
             <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[10px] bg-brand-500/15 border border-brand-500/30 text-brand-400 font-bold uppercase tracking-wider">Current Plan</span>
             @endif
             <div>
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest block">Starter Autopilot</span>
-                <h3 class="text-lg font-bold text-white mt-1">Starter Plan</h3>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest block">{{ $starterName }} Autopilot</span>
+                <h3 class="text-lg font-bold text-white mt-1">{{ $starterName }} Plan</h3>
                 <p class="text-xs text-slate-500 mt-2">Perfect for automated Q&A and general inquiries.</p>
                 
                 {{-- Price Display --}}
                 <div class="mt-6 mb-6 flex items-baseline gap-2">
-                    <span class="text-slate-500 line-through text-sm">₹2,499</span>
-                    <span class="text-2xl font-black text-white">₹1,249</span>
-                    <span class="text-xs text-slate-500">/ month</span>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">50% OFF</span>
+                    @if(!$reseller || $reseller->plan_starter_price === null)
+                        <span class="text-slate-500 line-through text-sm">₹2,499</span>
+                        <span class="text-2xl font-black text-white">₹1,249</span>
+                        <span class="text-xs text-slate-500">/ month</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">50% OFF</span>
+                    @else
+                        <span class="text-2xl font-black text-white">{{ $currencySymbol }}{{ number_format($starterPriceValue) }}</span>
+                        <span class="text-xs text-slate-500">/ month</span>
+                    @endif
                 </div>
                 
                 <hr class="border-slate-800 my-4" />
@@ -96,7 +137,7 @@
                 <button @click="checkoutPlan('starter')"
                         :disabled="isProcessing"
                         class="w-full py-3 bg-slate-900 border border-slate-700 hover:bg-slate-800 hover:border-slate-600 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
-                    <span>Subscribe to Starter</span>
+                    <span>Subscribe to {{ $starterName }}</span>
                 </button>
             </div>
         </div>
@@ -109,18 +150,23 @@
             @endif
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest block">Automator Pro</span>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-widest block">{{ $automatorName }} Pro</span>
                     <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-500 text-slate-950 uppercase tracking-wider">Recommended</span>
                 </div>
-                <h3 class="text-lg font-bold text-white mt-1">Automator Plan</h3>
+                <h3 class="text-lg font-bold text-white mt-1">{{ $automatorName }} Plan</h3>
                 <p class="text-xs text-slate-500 mt-2">For business looking to sync memory and push leads to Sheets.</p>
                 
                 {{-- Price Display --}}
                 <div class="mt-6 mb-6 flex items-baseline gap-2">
-                    <span class="text-slate-500 line-through text-sm">₹5,999</span>
-                    <span class="text-2xl font-black text-white">₹2,999</span>
-                    <span class="text-xs text-slate-500">/ month</span>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">50% OFF</span>
+                    @if(!$reseller || $reseller->plan_automator_price === null)
+                        <span class="text-slate-500 line-through text-sm">₹5,999</span>
+                        <span class="text-2xl font-black text-white">₹2,999</span>
+                        <span class="text-xs text-slate-500">/ month</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">50% OFF</span>
+                    @else
+                        <span class="text-2xl font-black text-white">{{ $currencySymbol }}{{ number_format($automatorPriceValue) }}</span>
+                        <span class="text-xs text-slate-500">/ month</span>
+                    @endif
                 </div>
                 
                 <hr class="border-slate-800 my-4" />
@@ -154,7 +200,7 @@
                 <button @click="checkoutPlan('automator')"
                         :disabled="isProcessing"
                         class="w-full py-3 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
-                    <span>Subscribe to Automator</span>
+                    <span>Subscribe to {{ $automatorName }}</span>
                 </button>
             </div>
         </div>
@@ -191,6 +237,7 @@
         <span x-text="toast.message"></span>
     </div>
 </div>
+@endif
 @endsection
 
 @push('scripts')
@@ -241,7 +288,7 @@
                         const options = {
                             key: data.key_id,
                             subscription_id: data.subscription_id,
-                            name: 'iChatUp',
+                            name: '{{ $appName }}',
                             description: planName.toUpperCase() + ' Plan Subscription',
                             handler: (response) => {
                                 this.verifyLivePayment('subscription', planName, {
@@ -253,7 +300,7 @@
                             modal: {
                                 ondismiss: () => { this.isProcessing = false; }
                             },
-                            theme: { color: '#10b981' }
+                            theme: { color: '{{ $brandPrimary }}' }
                         };
                         const rzp = new Razorpay(options);
                         rzp.open();
@@ -293,7 +340,7 @@
                             key: data.key_id,
                             amount: data.amount,
                             currency: 'INR',
-                            name: 'iChatUp Onboarding Support',
+                            name: '{{ $appName }} Onboarding Support',
                             description: 'Setup Support & Linking assistance',
                             order_id: data.order_id,
                             handler: (response) => {
@@ -306,7 +353,7 @@
                             modal: {
                                 ondismiss: () => { this.isProcessing = false; }
                             },
-                            theme: { color: '#6366f1' }
+                            theme: { color: '{{ $brandPrimary }}' }
                         };
                         const rzp = new Razorpay(options);
                         rzp.open();

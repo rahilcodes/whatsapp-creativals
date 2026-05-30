@@ -1,11 +1,17 @@
+@php
+    $reseller    = app()->has('active_reseller') ? app('active_reseller') : null;
+    $appName     = $reseller?->name ?? 'iChatUp';
+    $brandPrimary = $reseller?->primary_color ?? '#10b981';
+    $faviconUrl  = $reseller?->favicon_path ? Storage::url($reseller->favicon_path) : asset('favicon.png');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>iChatUp — Welcome Aboard</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
+    <title>{{ $appName }} — Welcome Aboard</title>
+    <link rel="icon" type="image/png" href="{{ $faviconUrl }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -13,9 +19,9 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --brand: #10b981;
-            --brand-glow: rgba(16,185,129,0.35);
-            --brand-dim: rgba(16,185,129,0.1);
+            --brand: {{ $brandPrimary }};
+            --brand-glow: {{ $brandPrimary }}59;
+            --brand-dim: {{ $brandPrimary }}1a;
             --bg: #050b14;
             --bg2: #080f1c;
             --bg3: #0d1827;
@@ -270,8 +276,17 @@
             <!-- Top Bar -->
             <div class="top-bar">
                 <div class="logo-wrap">
-                    <img src="{{ asset('ichatup_logo.png') }}" alt="iChatUp" />
-                    <span>iChatUp</span>
+                    @if($reseller?->logo_path)
+                        <img src="{{ Storage::url($reseller->logo_path) }}" alt="{{ $appName }}" />
+                    @elseif($reseller)
+                        <div class="w-8 h-8 rounded-[10px] flex items-center justify-center font-bold text-white text-sm flex-shrink-0"
+                             style="background: linear-gradient(135deg, {{ $brandPrimary }}, #047857);">
+                            {{ strtoupper(substr($appName, 0, 1)) }}
+                        </div>
+                    @else
+                        <img src="{{ asset('ichatup_logo.png') }}" alt="iChatUp Logo" />
+                    @endif
+                    <span>{{ $appName }}</span>
                 </div>
                 <form method="POST" action="{{ route('logout') }}" style="margin:0;">
                     @csrf

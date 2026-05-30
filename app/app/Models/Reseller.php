@@ -16,6 +16,12 @@ class Reseller extends Model
         'favicon_path',
         'primary_color',
         'sidebar_color',
+        'show_billing',
+        'plan_starter_name',
+        'plan_starter_price',
+        'plan_automator_name',
+        'plan_automator_price',
+        'billing_currency',
         'stripe_key',
         'stripe_secret',
         'stripe_webhook_secret',
@@ -37,6 +43,9 @@ class Reseller extends Model
         'license_fee'        => 'integer',
         'smtp_port'          => 'integer',
         'max_clients'        => 'integer',
+        'show_billing'       => 'boolean',
+        'plan_starter_price' => 'integer',
+        'plan_automator_price' => 'integer',
     ];
 
     // ── Relationships ──────────────────────────────────────────

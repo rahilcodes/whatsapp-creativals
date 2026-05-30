@@ -117,7 +117,7 @@
         {{-- Footer --}}
         <div class="p-4 border-t" style="border-color:rgba(255,255,255,0.05);">
             <div class="text-[10px] text-slate-600 text-center">
-                Powered by {{ $reseller ? 'iChatUp Engine' : 'iChatUp' }}
+                © {{ date('Y') }} {{ $appName }}
             </div>
             <form method="POST" action="{{ route('logout') }}" class="mt-2">
                 @csrf

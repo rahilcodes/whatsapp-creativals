@@ -23,7 +23,11 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #060d1a; }
-        :root { --brand: {{ $brandColor }}; }
+        :root {
+            --brand: {{ $brandColor }};
+            --brand-glow: {{ $brandColor }}33; /* 20% opacity */
+            --brand-hover-glow: {{ $brandColor }}59; /* 35% opacity */
+        }
         .glass-card { background: rgba(13,22,43,0.8); border: 1px solid rgba(255,255,255,0.08); }
         input, select, textarea {
             background: #0a1428 !important;
@@ -38,7 +42,7 @@
         input:focus, select:focus, textarea:focus {
             border-color: var(--brand) !important;
             outline: none !important;
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 20%, transparent) !important;
+            box-shadow: 0 0 0 3px var(--brand-glow) !important;
         }
         input::placeholder { color: #475569 !important; }
         label { color: #94a3b8; font-size: 0.8125rem; font-weight: 500; display: block; margin-bottom: 0.375rem; }
@@ -49,7 +53,7 @@
             padding: 0.75rem 1.5rem; border-radius: 0.75rem;
             cursor: pointer; width: 100%; font-size: 0.875rem; transition: all 0.2s;
         }
-        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 25px color-mix(in srgb, var(--brand) 35%, transparent); }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 25px var(--brand-hover-glow); }
         .feature-item { display: flex; align-items: flex-start; gap: 0.75rem; }
         .pulse-dot { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
@@ -79,7 +83,7 @@
                 <img src="{{ $logoUrl }}" alt="{{ $appName }}" class="h-12 object-contain mb-3" />
             @else
                 <div class="w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white text-xl mb-3"
-                     style="background: linear-gradient(135deg, {{ $brandColor }}, color-mix(in srgb, {{ $brandColor }} 70%, #000));">
+                     style="background: linear-gradient(135deg, {{ $brandColor }}, #000000);">
                     {{ strtoupper(substr($appName, 0, 1)) }}
                 </div>
             @endif

@@ -211,16 +211,29 @@ class ResellerAdminController extends Controller
         $reseller = $this->reseller();
 
         $request->validate([
-            'primary_color'  => 'nullable|string|max:20',
-            'sidebar_color'  => 'nullable|string|max:20',
-            'logo'           => 'nullable|image|max:2048',
-            'favicon'        => 'nullable|image|max:512',
+            'primary_color'        => 'nullable|string|max:20',
+            'sidebar_color'        => 'nullable|string|max:20',
+            'logo'                 => 'nullable|image|max:2048',
+            'favicon'              => 'nullable|image|max:512',
+            'show_billing'         => 'required|boolean',
+            'billing_currency'     => 'required|string|max:3',
+            'plan_starter_name'    => 'nullable|string|max:100',
+            'plan_starter_price'   => 'nullable|numeric|min:0',
+            'plan_automator_name'  => 'nullable|string|max:100',
+            'plan_automator_price' => 'nullable|numeric|min:0',
         ]);
 
         $updates = [];
 
         if ($request->primary_color) $updates['primary_color'] = $request->primary_color;
         if ($request->sidebar_color) $updates['sidebar_color'] = $request->sidebar_color;
+
+        $updates['show_billing'] = (bool)$request->show_billing;
+        $updates['billing_currency'] = $request->billing_currency;
+        $updates['plan_starter_name'] = $request->plan_starter_name;
+        $updates['plan_starter_price'] = $request->plan_starter_price !== null ? (int)round($request->plan_starter_price * 100) : null;
+        $updates['plan_automator_name'] = $request->plan_automator_name;
+        $updates['plan_automator_price'] = $request->plan_automator_price !== null ? (int)round($request->plan_automator_price * 100) : null;
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store("resellers/{$reseller->slug}/branding", 'public');
