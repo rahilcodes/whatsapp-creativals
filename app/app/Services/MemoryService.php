@@ -12,9 +12,10 @@ class MemoryService
     // ── Short-term: last N messages for this phone ────────────
     public function getShortTermMemory(string $phone, int $limit = null): array
     {
-        $limit = $limit ?? (int) BotSetting::get('memory_limit', '10');
+        $limit = $limit ?? (int) BotSetting::get('memory_limit', '30'); // Boost default capacity for longer history
 
         return Message::where('phone', $phone)
+            ->where('created_at', '>=', now()->subHours(24))
             ->orderByDesc('created_at')
             ->limit($limit)
             ->get()

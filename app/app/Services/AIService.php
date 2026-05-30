@@ -7,6 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\UserMemory;
 use App\Models\Tenant;
 use App\Models\Lead;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -63,7 +64,8 @@ class AIService
             $context['business_memory'],
             $context['long_term'],
             $decision,
-            $businessType
+            $businessType,
+            $phone
         );
 
         $messages = $this->buildMessages($systemPrompt, $context['short_term'], $userMessage, $imagePayload);
@@ -110,7 +112,10 @@ class AIService
 
         if ($writeActionType && $writeActionData && $tenant = Tenant::find(app()->has('tenant_id') ? app('tenant_id') : null)) {
             if ($tenant->google_sheet_id && $tenant->google_sheet_sync_mode === 'smart_read_write') {
+                // Atomic lock prevents concurrent write collisions on the same sheet
+                $lock = Cache::lock("sheet_write_lock_{$tenant->id}", 10);
                 try {
+                    $lock->block(8); // Wait up to 8s to acquire lock
                     if ($writeActionType === 'write_sheet_row') {
                         app(GoogleSheetsService::class)->appendDynamicRow($tenant->google_sheet_id, $writeActionData);
                         ActivityLog::record('sheets_action_written', "AI dynamically wrote a new row to Google Sheet ID {$tenant->google_sheet_id}");
@@ -118,9 +123,40 @@ class AIService
                         app(GoogleSheetsService::class)->updateSheetRanges($tenant->google_sheet_id, $writeActionData);
                         ActivityLog::record('sheets_action_written', "AI dynamically updated custom ranges in Google Sheet ID {$tenant->google_sheet_id}");
                     }
+                    // Immediately bust the read cache so the next reply sees fresh sheet data
+                    Cache::forget("tenant_sheet_data_{$tenant->id}");
+                    Cache::forget("tenant_sheet_index_{$tenant->id}");
                 } catch (\Throwable $e) {
                     Log::error("Error executing dynamic sheet write from AI response: " . $e->getMessage());
+                } finally {
+                    $lock->forceRelease();
                 }
+            }
+        }
+
+        // Parse CONTEXT_STATE block and pin it into the user's active_state memory
+        if (str_contains($reply, 'CONTEXT_STATE:')) {
+            if (preg_match('/CONTEXT_STATE:\s*(\{.*?\})/s', $reply, $stateMatches)) {
+                $stateJson = trim($stateMatches[1]);
+                $stateData = json_decode($stateJson, true);
+                if (is_array($stateData) && !empty($stateData)) {
+                    try {
+                        $mem = UserMemory::firstOrCreate(
+                            ['phone' => $phone],
+                            ['last_activity_at' => now()]
+                        );
+                        $existing = $mem->active_state ?? [];
+                        $mem->update([
+                            'active_state'     => array_merge($existing, $stateData),
+                            'last_activity_at' => now(),
+                        ]);
+                        Log::info("Active state saved for {$phone}", $stateData);
+                    } catch (\Throwable $e) {
+                        Log::warning("Failed to save active state for {$phone}: " . $e->getMessage());
+                    }
+                }
+                // Strip the CONTEXT_STATE block from the conversational reply
+                $reply = trim(str_replace($stateMatches[0], '', $reply));
             }
         }
 
@@ -328,7 +364,7 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
     }
 
     // ── Build the system prompt ───────────────────────────────
-    private function buildSystemPrompt(string $businessMemory, ?string $userSummary, array $decision, string $businessType): string
+    private function buildSystemPrompt(string $businessMemory, ?string $userSummary, array $decision, string $businessType, ?string $phone = null): string
     {
         // 1. Fetch the custom base prompt from Bot Settings (e.g. Aira identity)
         $basePrompt = BotSetting::get('system_prompt',
@@ -382,11 +418,21 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
                         return app(GoogleSheetsService::class)->getRawSheetGrid($sheetId);
                     });
 
+                    $indexMap = \Illuminate\Support\Facades\Cache::remember("tenant_sheet_index_{$tenant->id}", 300, function() use ($sheetId) {
+                        return app(GoogleSheetsService::class)->getLayoutIndexMap($sheetId);
+                    });
+
                     if (!empty($sheetData) && !empty($sheetData['grid_text'])) {
                         $prompt .= "=== CONNECTED GOOGLE SHEET DATA (LIVE READ) ===\n";
                         $prompt .= "You have real-time access to the connected spreadsheet dataset. Row numbers and column letter mapping are shown below:\n";
                         $prompt .= "Sheet Columns: [" . implode(', ', $sheetData['columns'] ?? ['A','B','C','D','E','F','G','H','I','J']) . "]\n";
                         $prompt .= "Sheet Values:\n" . $sheetData['grid_text'] . "\n\n";
+
+                        if (!empty($indexMap)) {
+                            $prompt .= "=== SHEET STRUCTURAL date INDEX MAP (ACTIVE COORDINATES) ===\n";
+                            $prompt .= "Use the exact pre-calculated row coordinates below to target specific dates in your sheet writes. Do NOT guess or perform manual calculations:\n";
+                            $prompt .= $indexMap . "\n\n";
+                        }
 
                         if ($tenant->google_sheet_instructions) {
                              $prompt .= "=== CUSTOM SHEET BUSINESS LOGIC ===\n";
@@ -402,10 +448,31 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
                         $prompt .= "2. For custom calendar/blocked layouts, update specific ranges or cells directly:\n";
                         $prompt .= "WRITE_ACTION: {\"type\": \"update_sheet_ranges\", \"ranges\": {\"Sheet1!C6:C14\": [[\"Value 1\"], [\"Value 2\"], [\"Value 3\"], [\"Value 4\"], [\"Value 5\"], [\"Value 6\"], [\"Value 7\"], [\"Value 8\"], [\"Value 9\"]]}}\n";
                         $prompt .= "Ensure that the ranges and values are 100% correct based on the active rows and columns visible in the sheet dataset. Keep this block separate from your conversational reply so the system can parse it.\n\n";
+                        $prompt .= "=== ACTIVE CONTEXT STATE DIRECTIVE ===\n";
+                        $prompt .= "Whenever the guest confirms or updates a key booking detail (dome name, check-in date, no. of guests, price, add-ons, advance paid, or guest name/phone), you MUST append a CONTEXT_STATE block to your response so the system can persist it securely in the database:\n";
+                        $prompt .= "CONTEXT_STATE: {\"dome\": \"Twin Valley Left\", \"date\": \"1 May\", \"guests\": \"2A 1K\", \"price\": 11000, \"addon\": \"Floating Breakfast\", \"advance\": 5000, \"guest_name\": \"Rahul\", \"guest_phone\": \"9876543210\"}\n";
+                        $prompt .= "Only include keys that changed or are now confirmed. Omit keys that are still unknown. Strip this block from your conversational reply — it is invisible to the guest.\n\n";
                     }
                 } catch (\Throwable $e) {
                     Log::warning("Error injecting live sheets data in system prompt: " . $e->getMessage());
                 }
+            }
+        }
+
+        // Active State Injection
+        if ($phone) {
+            try {
+                $userMemory = \App\Models\UserMemory::where('phone', $phone)->first();
+                if ($userMemory && !empty($userMemory->active_state)) {
+                    $prompt .= "=== ACTIVE RESERVATION STATE VARIABLES (SECURE SYSTEM PERSISTENCE) ===\n";
+                    $prompt .= "Use these pinned booking variables to build your reply or target your writes. They represent what the guest is currently choosing and are kept safe in the database:\n";
+                    foreach ($userMemory->active_state as $k => $v) {
+                        $prompt .= "- " . ucfirst(str_replace('_', ' ', $k)) . ": " . (is_array($v) ? json_encode($v) : $v) . "\n";
+                    }
+                    $prompt .= "\n";
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Error injecting user active state into prompt: " . $e->getMessage());
             }
         }
 
@@ -687,7 +754,7 @@ RULES
                 ->post('https://api.openai.com/v1/chat/completions', [
                     'model'       => $this->model,
                     'messages'    => $messages,
-                    'max_tokens'  => 250,
+                    'max_tokens'  => 800,
                     'temperature' => 0.75,
                     'top_p'       => 0.9,
                 ]);
@@ -751,7 +818,7 @@ RULES
                 'systemInstruction' => ['parts' => [['text' => $systemText]]],
                 'contents'          => $contents,
                 'generationConfig'  => [
-                    'maxOutputTokens' => 250,
+                    'maxOutputTokens' => 800,
                     'temperature'     => 0.75,
                 ],
             ];

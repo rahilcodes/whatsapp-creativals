@@ -27,6 +27,12 @@ class SyncLeadToGoogleSheet implements ShouldQueue
         // Scope the session to the lead's tenant to pass correct model parameters
         app()->instance('tenant_id', $this->lead->tenant_id);
 
+        $tenant = \App\Models\Tenant::find($this->lead->tenant_id);
+        if ($tenant && $tenant->google_sheet_sync_mode === 'smart_read_write') {
+            // Keep Row 1 completely clean on visual calendar sheets — AI handles coordinates via update_sheet_ranges
+            return;
+        }
+
         $sheetsService->syncLeadToSheet($this->lead);
     }
 }

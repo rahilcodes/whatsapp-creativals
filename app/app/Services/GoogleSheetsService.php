@@ -451,6 +451,63 @@ class GoogleSheetsService
     }
 
     /**
+     * Parse column B to build an index mapping of all pre-populated dates
+     * and their exact row numbers to completely eliminate math hallucinations in the AI.
+     */
+    public function getLayoutIndexMap(string $sheetId): string
+    {
+        if (!$this->isConfigured) {
+            return "Date \"1 May\" begins at Row 4 (Name Row = 6, Phone Row = 7, ..., Comments Row = 14)\n" .
+                   "Date \"2 May\" begins at Row 16 (Name Row = 18, Phone Row = 19, ..., Comments Row = 26)\n" .
+                   "Date \"3 May\" begins at Row 28 (Name Row = 30, Phone Row = 31, ..., Comments Row = 38)";
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            $sheetName = $this->getFirstSheetTitle($sheetId);
+            $response = $sheetsService->spreadsheets_values->get($sheetId, "{$sheetName}!B1:B500");
+            $values = $response->getValues() ?? [];
+
+            $indexLines = [];
+            foreach ($values as $index => $row) {
+                if (empty($row) || empty($row[0])) continue;
+                $cellVal = trim($row[0]);
+                
+                // Match dates like "1 May", "2 May", "15 June", "24 December"
+                if (preg_match('/^\d+\s+[A-Za-z]+$/', $cellVal)) {
+                    $rowNum = $index + 1;
+                    $nameRow = $rowNum + 2;
+                    $phoneRow = $rowNum + 3;
+                    $peopleRow = $rowNum + 4;
+                    $ageRow = $rowNum + 5;
+                    $compRow = $rowNum + 6;
+                    $addonRow = $rowNum + 7;
+                    $priceRow = $rowNum + 8;
+                    $advanceRow = $rowNum + 9;
+                    $commentsRow = $rowNum + 10;
+                    
+                    $indexLines[] = "Date \"{$cellVal}\" begins at Row {$rowNum} (" .
+                                    "Name Row = {$nameRow}, " .
+                                    "Phone Row = {$phoneRow}, " .
+                                    "No Of People Row = {$peopleRow}, " .
+                                    "Age Of Kids Row = {$ageRow}, " .
+                                    "Complimentary Row = {$compRow}, " .
+                                    "Add On Row = {$addonRow}, " .
+                                    "Price Row = {$priceRow}, " .
+                                    "Advance Paid Row = {$advanceRow}, " .
+                                    "Comments Row = {$commentsRow})";
+                }
+            }
+
+            return empty($indexLines) ? "No pre-populated date rows found in Column B." : implode("\n", $indexLines);
+
+        } catch (\Throwable $e) {
+            Log::warning("Google Sheets getLayoutIndexMap Exception: " . $e->getMessage());
+            return "Failed to auto-index layout coordinates: " . $e->getMessage();
+        }
+    }
+
+    /**
      * Resolves the name of the first tab/sheet in the spreadsheet dynamically.
      * Defaults to 'Sheet1' if it fails.
      */
