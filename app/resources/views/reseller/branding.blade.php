@@ -195,11 +195,11 @@ function brandingPanel() {
             form.append('primary_color', this.primaryColor);
             form.append('sidebar_color', this.sidebarColor);
             form.append('show_billing', this.showBilling ? 1 : 0);
-            form.append('billing_currency', this.billingCurrency);
-            form.append('plan_starter_name', this.planStarterName);
-            form.append('plan_starter_price', this.planStarterPrice);
-            form.append('plan_automator_name', this.planAutomatorName);
-            form.append('plan_automator_price', this.planAutomatorPrice);
+            form.append('billing_currency', this.billingCurrency || 'INR');
+            form.append('plan_starter_name', this.planStarterName || '');
+            form.append('plan_starter_price', this.planStarterPrice !== null && this.planStarterPrice !== undefined ? this.planStarterPrice : '');
+            form.append('plan_automator_name', this.planAutomatorName || '');
+            form.append('plan_automator_price', this.planAutomatorPrice !== null && this.planAutomatorPrice !== undefined ? this.planAutomatorPrice : '');
             if (this.logoFile)    form.append('logo', this.logoFile);
             if (this.faviconFile) form.append('favicon', this.faviconFile);
 

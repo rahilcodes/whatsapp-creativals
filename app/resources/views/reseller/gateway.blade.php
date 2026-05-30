@@ -2,6 +2,13 @@
 @section('title', 'Payments & Mail')
 @section('subtitle', 'Configure Stripe payments and email delivery settings')
 
+@php
+    $reseller = app()->bound('active_reseller') ? app('active_reseller') : null;
+    $appName = $reseller?->name ?? 'iChatUp';
+    $resellerDomain = $reseller?->domain ?? 'yourdomain.com';
+    $resellerRootDomain = preg_replace('/^panel\./', '', $resellerDomain);
+@endphp
+
 @section('content')
 <div x-data="gatewayPanel()" class="space-y-6 max-w-2xl">
 
@@ -61,7 +68,7 @@
             </div>
             <div class="space-y-1">
                 <label class="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">SMTP Username</label>
-                <input x-model="form.smtp_username" type="text" placeholder="you@besurebot.com" class="w-full text-xs px-3 py-2 rounded-lg font-mono" />
+                <input x-model="form.smtp_username" type="text" placeholder="you@{{ $resellerRootDomain }}" class="w-full text-xs px-3 py-2 rounded-lg font-mono" />
             </div>
             <div class="space-y-1">
                 <label class="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">SMTP Password</label>
@@ -69,11 +76,11 @@
             </div>
             <div class="space-y-1">
                 <label class="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">From Email</label>
-                <input x-model="form.smtp_from_address" type="email" placeholder="support@besurebot.com" class="w-full text-xs px-3 py-2 rounded-lg" />
+                <input x-model="form.smtp_from_address" type="email" placeholder="support@{{ $resellerRootDomain }}" class="w-full text-xs px-3 py-2 rounded-lg" />
             </div>
             <div class="space-y-1">
                 <label class="text-[10px] uppercase text-slate-500 font-semibold tracking-wider">From Name</label>
-                <input x-model="form.smtp_from_name" type="text" placeholder="BeSureBot Support" class="w-full text-xs px-3 py-2 rounded-lg" />
+                <input x-model="form.smtp_from_name" type="text" placeholder="{{ $appName }} Support" class="w-full text-xs px-3 py-2 rounded-lg" />
             </div>
         </div>
 

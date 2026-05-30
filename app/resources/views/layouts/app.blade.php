@@ -4,6 +4,7 @@
     $brandPrimary = $reseller?->primary_color ?? '#10b981';
     $brandSidebar = $reseller?->sidebar_color ?? '#080f1e';
     $faviconUrl  = $reseller?->favicon_path ? Storage::url($reseller->favicon_path) : asset('favicon.png');
+    $showBilling = !$reseller || (bool)$reseller->show_billing;
 @endphp
 <!DOCTYPE html>
 <html lang="en" class="dark">
@@ -248,16 +249,18 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                         </svg>
                         @if($isLastDay)
-                            <span>⚠️ <strong>Last {{ $hoursLeft }} hours</strong> of your free trial — upgrade now to keep AI replies running!</span>
+                            <span>⚠️ <strong>Last {{ $hoursLeft }} hours</strong> of your free trial — {{ $showBilling ? 'upgrade now' : 'contact support' }} to keep AI replies running!</span>
                         @elseif($isLast3Days)
                             <span>Trial ending soon — <strong>{{ $daysLeft }} {{ $daysLeft === 1 ? 'day' : 'days' }} left</strong> on your free trial.</span>
                         @else
                             <span>Trial Mode — <strong>{{ $daysLeft }} days left</strong> on your free trial.</span>
                         @endif
                     </div>
+                    @if($showBilling)
                     <a href="{{ route('billing.index') }}" class="bg-slate-950/40 hover:bg-slate-950/60 text-white px-3 py-1.5 rounded-lg transition-all border border-white/10 text-[11px] font-bold shadow-sm whitespace-nowrap">
                         Upgrade Plan →
                     </a>
+                    @endif
                 </div>
             @else
                 {{-- Trial Expired Banner --}}
@@ -266,11 +269,13 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
                         </svg>
-                        <span>🔴 Your free trial has <strong>expired</strong>. AI autoreplies are paused. Subscribe to re-enable.</span>
+                        <span>🔴 Your free trial has <strong>expired</strong>. AI autoreplies are paused. {{ $showBilling ? 'Subscribe to re-enable.' : 'Please contact support to renew.' }}</span>
                     </div>
+                    @if($showBilling)
                     <a href="{{ route('billing.index') }}" class="bg-white text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-all text-[11px] font-bold shadow-sm whitespace-nowrap">
                         Subscribe Now →
                     </a>
+                    @endif
                 </div>
             @endif
         @endif

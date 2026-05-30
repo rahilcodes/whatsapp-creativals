@@ -228,12 +228,12 @@ class ResellerAdminController extends Controller
         if ($request->primary_color) $updates['primary_color'] = $request->primary_color;
         if ($request->sidebar_color) $updates['sidebar_color'] = $request->sidebar_color;
 
-        $updates['show_billing'] = (bool)$request->show_billing;
+        $updates['show_billing'] = filter_var($request->show_billing, FILTER_VALIDATE_BOOLEAN);
         $updates['billing_currency'] = $request->billing_currency;
-        $updates['plan_starter_name'] = $request->plan_starter_name;
-        $updates['plan_starter_price'] = $request->plan_starter_price !== null ? (int)round($request->plan_starter_price * 100) : null;
-        $updates['plan_automator_name'] = $request->plan_automator_name;
-        $updates['plan_automator_price'] = $request->plan_automator_price !== null ? (int)round($request->plan_automator_price * 100) : null;
+        $updates['plan_starter_name'] = $request->plan_starter_name !== '' ? $request->plan_starter_name : null;
+        $updates['plan_starter_price'] = ($request->plan_starter_price !== null && $request->plan_starter_price !== '') ? (int)round($request->plan_starter_price * 100) : null;
+        $updates['plan_automator_name'] = $request->plan_automator_name !== '' ? $request->plan_automator_name : null;
+        $updates['plan_automator_price'] = ($request->plan_automator_price !== null && $request->plan_automator_price !== '') ? (int)round($request->plan_automator_price * 100) : null;
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store("resellers/{$reseller->slug}/branding", 'public');
