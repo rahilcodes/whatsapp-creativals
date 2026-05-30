@@ -31,10 +31,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            // Admin routes → admin login (relative — works on any domain)
             if ($request->is('admin') || $request->is('admin/*')) {
-                return route('admin.login');
+                return '/admin/login';
             }
-            return route('login');
+            // All other routes → /login (relative path stays on current domain:
+            // panel.besurebot.com/login rather than ichatup.com/login)
+            return '/login';
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {

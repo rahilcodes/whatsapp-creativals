@@ -27,6 +27,8 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $user = Auth::user();
+
+        // Block iChatUp master super-admins from normal login form
         if ($user && $user->is_super_admin) {
             Auth::logout();
             $request->session()->invalidate();
@@ -39,18 +41,25 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Reseller admins → go to their panel (relative path stays on current domain)
+        if ($user && $user->role === 'reseller_admin') {
+            return redirect('/reseller-admin');
+        }
+
+        // Start bot session for tenant users
         if ($user && $user->tenant_id) {
             app(\App\Services\BotService::class)->startSession($user->tenant_id);
         }
 
-        // Failsafe double-check for intended API URLs
+        // Failsafe: never redirect back to an API URL
         $intended = redirect()->getIntendedUrl();
         if ($intended && (str_contains($intended, '/api/') || str_contains($intended, '/api-'))) {
             $request->session()->forget('url.intended');
-            return redirect()->route('dashboard');
+            return redirect('/dashboard'); // relative — stays on current domain
         }
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Use relative path so browser stays on panel.besurebot.com (not ichatup.com)
+        return redirect()->intended('/dashboard');
     }
 
     /**

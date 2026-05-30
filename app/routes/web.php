@@ -4,6 +4,11 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    // On reseller domains (panel.besurebot.com etc.) there is no marketing page —
+    // their homepage is on their own site. Just send users straight to login.
+    if (app()->bound('active_reseller')) {
+        return redirect('/login');
+    }
     return view('welcome');
 });
 
