@@ -170,6 +170,10 @@ Route::middleware(['auth', 'reseller.admin'])->prefix('reseller-admin')->name('r
     Route::get('/branding',  [ResellerAdminController::class, 'branding'])->name('branding');
     Route::post('/branding', [ResellerAdminController::class, 'updateBranding'])->name('branding.update');
 
+    // Plans & Pricing Customization
+    Route::get('/pricing',   [ResellerAdminController::class, 'pricing'])->name('pricing');
+    Route::post('/pricing',  [ResellerAdminController::class, 'updatePricing'])->name('pricing.update');
+
     // Payment gateway & SMTP
     Route::get('/gateway',   [ResellerAdminController::class, 'gateway'])->name('gateway');
     Route::post('/gateway',  [ResellerAdminController::class, 'updateGateway'])->name('gateway.update');

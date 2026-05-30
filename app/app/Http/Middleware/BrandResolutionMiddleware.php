@@ -23,7 +23,14 @@ class BrandResolutionMiddleware
     {
         $host = $request->getHost(); // e.g. "panel.besurebot.com"
 
-        $reseller = Reseller::where('domain', $host)->where('status', 'active')->first();
+        $reseller = null;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('resellers')) {
+                $reseller = Reseller::where('domain', $host)->where('status', 'active')->first();
+            }
+        } catch (\Throwable $e) {
+            // Ignore database connection or schema errors in early bootstraps/testing
+        }
 
         if ($reseller && $reseller->isLicenseValid()) {
             // Bind to app container so any blade/controller can access it
@@ -57,4 +64,3 @@ class BrandResolutionMiddleware
         return $next($request);
     }
 }
-

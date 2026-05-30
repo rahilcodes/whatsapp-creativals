@@ -211,29 +211,16 @@ class ResellerAdminController extends Controller
         $reseller = $this->reseller();
 
         $request->validate([
-            'primary_color'        => 'nullable|string|max:20',
-            'sidebar_color'        => 'nullable|string|max:20',
-            'logo'                 => 'nullable|image|max:2048',
-            'favicon'              => 'nullable|image|max:512',
-            'show_billing'         => 'required|boolean',
-            'billing_currency'     => 'required|string|max:3',
-            'plan_starter_name'    => 'nullable|string|max:100',
-            'plan_starter_price'   => 'nullable|numeric|min:0',
-            'plan_automator_name'  => 'nullable|string|max:100',
-            'plan_automator_price' => 'nullable|numeric|min:0',
+            'primary_color'  => 'nullable|string|max:20',
+            'sidebar_color'  => 'nullable|string|max:20',
+            'logo'           => 'nullable|image|max:2048',
+            'favicon'        => 'nullable|image|max:512',
         ]);
 
         $updates = [];
 
         if ($request->primary_color) $updates['primary_color'] = $request->primary_color;
         if ($request->sidebar_color) $updates['sidebar_color'] = $request->sidebar_color;
-
-        $updates['show_billing'] = filter_var($request->show_billing, FILTER_VALIDATE_BOOLEAN);
-        $updates['billing_currency'] = $request->billing_currency;
-        $updates['plan_starter_name'] = $request->plan_starter_name !== '' ? $request->plan_starter_name : null;
-        $updates['plan_starter_price'] = ($request->plan_starter_price !== null && $request->plan_starter_price !== '') ? (int)round($request->plan_starter_price * 100) : null;
-        $updates['plan_automator_name'] = $request->plan_automator_name !== '' ? $request->plan_automator_name : null;
-        $updates['plan_automator_price'] = ($request->plan_automator_price !== null && $request->plan_automator_price !== '') ? (int)round($request->plan_automator_price * 100) : null;
 
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store("resellers/{$reseller->slug}/branding", 'public');
@@ -250,6 +237,56 @@ class ResellerAdminController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Branding settings updated successfully.',
+        ]);
+    }
+
+    /**
+     * GET /reseller-admin/pricing
+     * Show plans and pricing configuration form.
+     */
+    public function pricing()
+    {
+        $reseller = $this->reseller();
+        return view('reseller.pricing', compact('reseller'));
+    }
+
+    /**
+     * POST /reseller-admin/pricing
+     * Save plans and pricing settings.
+     */
+    public function updatePricing(Request $request): JsonResponse
+    {
+        $reseller = $this->reseller();
+
+        $request->validate([
+            'show_billing'         => 'required|boolean',
+            'billing_currency'     => 'required|string|max:3',
+            'plan_starter_name'    => 'nullable|string|max:100',
+            'plan_starter_price'   => 'nullable|numeric|min:0',
+            'plan_automator_name'  => 'nullable|string|max:100',
+            'plan_automator_price' => 'nullable|numeric|min:0',
+            'plan_support_name'    => 'nullable|string|max:100',
+            'plan_support_price'   => 'nullable|numeric|min:0',
+        ]);
+
+        $updates = [];
+        $updates['show_billing'] = filter_var($request->show_billing, FILTER_VALIDATE_BOOLEAN);
+        $updates['billing_currency'] = $request->billing_currency;
+        
+        $updates['plan_starter_name'] = $request->plan_starter_name !== '' ? $request->plan_starter_name : null;
+        $updates['plan_starter_price'] = ($request->plan_starter_price !== null && $request->plan_starter_price !== '') ? (int)round($request->plan_starter_price * 100) : null;
+        
+        $updates['plan_automator_name'] = $request->plan_automator_name !== '' ? $request->plan_automator_name : null;
+        $updates['plan_automator_price'] = ($request->plan_automator_price !== null && $request->plan_automator_price !== '') ? (int)round($request->plan_automator_price * 100) : null;
+
+        $updates['plan_support_name'] = $request->plan_support_name !== '' ? $request->plan_support_name : null;
+        $updates['plan_support_price'] = ($request->plan_support_price !== null && $request->plan_support_price !== '') ? (int)round($request->plan_support_price * 100) : null;
+
+        $reseller->update($updates);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Plans and pricing settings updated successfully.',
         ]);
     }
 

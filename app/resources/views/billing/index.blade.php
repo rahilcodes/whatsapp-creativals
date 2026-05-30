@@ -10,9 +10,11 @@
     
     $starterPriceValue = $reseller && $reseller->plan_starter_price !== null ? $reseller->plan_starter_price / 100 : 1249;
     $automatorPriceValue = $reseller && $reseller->plan_automator_price !== null ? $reseller->plan_automator_price / 100 : 2999;
+    $supportPriceValue = $reseller && $reseller->plan_support_price !== null ? $reseller->plan_support_price / 100 : 2499;
     
     $starterName = $reseller?->plan_starter_name ?: 'Starter';
     $automatorName = $reseller?->plan_automator_name ?: 'Automator';
+    $supportName = $reseller?->plan_support_name ?: 'Onboarding Support';
     
     $currency = $reseller?->billing_currency ?: 'INR';
     $currencySymbol = $currency === 'INR' ? '₹' : ($currency === 'USD' ? '$' : $currency . ' ');
@@ -212,13 +214,13 @@
     <div class="card p-6 border border-slate-800 bg-slate-950/40 max-w-3xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="space-y-1.5 flex-1">
             <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider inline-block">Support Add-on</span>
-            <h4 class="font-bold text-white text-sm">Need Help Setting Up? Onboarding Support</h4>
+            <h4 class="font-bold text-white text-sm">Need Help Setting Up? {{ $supportName }}</h4>
             <p class="text-xs text-slate-500 leading-relaxed max-w-xl">
                 Let our dedicated team handle the onboarding setup for you. We will share sheets templates, configure your triggers, customize your prompt parameters, and test everything live to verify it functions perfectly.
             </p>
         </div>
         <div class="text-left md:text-right flex flex-col md:items-end justify-center min-w-[200px]">
-            <span class="text-lg font-black text-white block">₹2,499 <span class="text-[10px] text-slate-500 font-normal">one-time</span></span>
+            <span class="text-lg font-black text-white block">{{ $currencySymbol }}{{ number_format($supportPriceValue) }} <span class="text-[10px] text-slate-500 font-normal">one-time</span></span>
             <button @click="purchaseSupportAddon()"
                     :disabled="isProcessing"
                     class="mt-3 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs transition-colors disabled:opacity-50">
@@ -339,9 +341,9 @@
                         const options = {
                             key: data.key_id,
                             amount: data.amount,
-                            currency: 'INR',
-                            name: '{{ $appName }} Onboarding Support',
-                            description: 'Setup Support & Linking assistance',
+                            currency: '{{ $currency }}',
+                            name: '{{ $appName }}',
+                            description: data.name,
                             order_id: data.order_id,
                             handler: (response) => {
                                 this.verifyLivePayment('addon', '', {

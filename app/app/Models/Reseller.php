@@ -21,6 +21,8 @@ class Reseller extends Model
         'plan_starter_price',
         'plan_automator_name',
         'plan_automator_price',
+        'plan_support_name',
+        'plan_support_price',
         'billing_currency',
         'stripe_key',
         'stripe_secret',
@@ -46,6 +48,7 @@ class Reseller extends Model
         'show_billing'       => 'boolean',
         'plan_starter_price' => 'integer',
         'plan_automator_price' => 'integer',
+        'plan_support_price' => 'integer',
     ];
 
     // ── Relationships ──────────────────────────────────────────

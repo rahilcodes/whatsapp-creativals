@@ -357,6 +357,100 @@ class GoogleSheetsService
     }
 
     /**
+     * Retrieve the raw sheet grid including row numbers and column letters for AI context.
+     */
+    public function getRawSheetGrid(string $sheetId): array
+    {
+        if (!$this->isConfigured) {
+            // Mock grid representing the user's custom sheet for local development
+            return [
+                'columns' => ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+                'grid_text' => "Row 1: [\"Captured Name\", \"Phone Number\", \"Email Address\", \"Lead Score\", \"Lifecycle Stage\", \"Customer Intent\", \"Customer Mood\", \"Last Activity\", \"Key Details / Summary\"]\n" .
+                               "Row 2: [\"Date\", \"Twin Valley R\", \"Twin Valley L\", \"Nubra\", \"Araku\", \"Silent Valley\", \"Sangla\", \"Spiti\", \"Solang\"]\n" .
+                               "Row 3: []\n" .
+                               "Row 4: [\"\", \"1 May\"]\n" .
+                               "Row 5: [\"\", \"Friday\"]\n" .
+                               "Row 6: [\"Name\", \"\", \"Vinayak Behera\", \"Vinayak Behera\", \"Hasmukh Sharma\", \"Rashmita Manoj\"]\n" .
+                               "Row 7: [\"Phone number\", \"\", \"+91 80100 55462\", \"+91 80100 55462\"]\n" .
+                               "Row 8: [\"No. of people\", \"\", \"4A 1k\", \"4A 1k\"]\n" .
+                               "Row 9: [\"Age of kids\"]\n" .
+                               "Row 10: [\"Complimentary\"]\n" .
+                               "Row 11: [\"Add on\"]\n" .
+                               "Row 12: [\"Price\", \"\", \"25,500\", \"25,500\"]\n" .
+                               "Row 13: [\"Advance paid\", \"\", \"14,000\", \"14,000\"]\n" .
+                               "Row 14: [\"Comments\"]"
+            ];
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            $sheetName = $this->getFirstSheetTitle($sheetId);
+            $response = $sheetsService->spreadsheets_values->get($sheetId, "{$sheetName}!A1:Z500");
+            $values = $response->getValues() ?? [];
+
+            if (empty($values)) {
+                return [];
+            }
+
+            $gridText = "";
+            foreach ($values as $index => $row) {
+                $rowNumber = $index + 1;
+                $gridText .= "Row {$rowNumber}: " . json_encode($row) . "\n";
+            }
+
+            // Map columns to letters (up to Z)
+            $columns = [];
+            for ($i = 0; $i < 26; $i++) {
+                $columns[] = chr(65 + $i); // A to Z
+            }
+
+            return [
+                'columns' => $columns,
+                'grid_text' => trim($gridText)
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Google Sheets getRawSheetGrid Exception: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Update arbitrary cells/ranges in the spreadsheet.
+     * $rangesData is an associative array of range => values array, e.g. ["Sheet1!C6:C14" => [["Name"], ["Phone"], ...]]
+     */
+    public function updateSheetRanges(string $sheetId, array $rangesData): bool
+    {
+        if (!$this->isConfigured) {
+            Log::info("Mock Sheets: Simulating dynamic update ranges for {$sheetId}: " . json_encode($rangesData));
+            return true;
+        }
+
+        try {
+            $sheetsService = new \Google\Service\Sheets($this->client);
+            
+            $data = [];
+            foreach ($rangesData as $range => $values) {
+                $data[] = new \Google\Service\Sheets\ValueRange([
+                    'range' => $range,
+                    'values' => $values
+                ]);
+            }
+
+            $requestBody = new \Google\Service\Sheets\BatchUpdateValuesRequest([
+                'valueInputOption' => 'RAW',
+                'data' => $data
+            ]);
+
+            $sheetsService->spreadsheets_values->batchUpdate($sheetId, $requestBody);
+            Log::info("Google Sheets: Batch updated ranges in {$sheetId}");
+            return true;
+        } catch (\Throwable $e) {
+            Log::error("Google Sheets updateSheetRanges Exception: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Resolves the name of the first tab/sheet in the spreadsheet dynamically.
      * Defaults to 'Sheet1' if it fails.
      */

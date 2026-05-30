@@ -90,23 +90,34 @@ class AIService
 
         // Parse and execute dynamic sheet write action if present
         $writeActionData = null;
+        $writeActionType = null;
         if (str_contains($reply, 'WRITE_ACTION:')) {
             if (preg_match('/WRITE_ACTION:\s*(\{.*?\})/s', $reply, $matches)) {
                 $jsonBlock = trim($matches[1]);
                 $action = json_decode($jsonBlock, true);
-                if (is_array($action) && ($action['type'] ?? '') === 'write_sheet_row' && !empty($action['data'])) {
-                    $writeActionData = $action['data'];
+                if (is_array($action)) {
+                    $writeActionType = $action['type'] ?? null;
+                    if ($writeActionType === 'write_sheet_row') {
+                        $writeActionData = $action['data'] ?? null;
+                    } elseif ($writeActionType === 'update_sheet_ranges') {
+                        $writeActionData = $action['ranges'] ?? null;
+                    }
                 }
                 // Strip the WRITE_ACTION block from the conversational reply
                 $reply = trim(str_replace($matches[0], '', $reply));
             }
         }
 
-        if ($writeActionData && $tenant = Tenant::find(app()->has('tenant_id') ? app('tenant_id') : null)) {
+        if ($writeActionType && $writeActionData && $tenant = Tenant::find(app()->has('tenant_id') ? app('tenant_id') : null)) {
             if ($tenant->google_sheet_id && $tenant->google_sheet_sync_mode === 'smart_read_write') {
                 try {
-                    app(GoogleSheetsService::class)->appendDynamicRow($tenant->google_sheet_id, $writeActionData);
-                    ActivityLog::record('sheets_action_written', "AI dynamically wrote a new row to Google Sheet ID {$tenant->google_sheet_id}");
+                    if ($writeActionType === 'write_sheet_row') {
+                        app(GoogleSheetsService::class)->appendDynamicRow($tenant->google_sheet_id, $writeActionData);
+                        ActivityLog::record('sheets_action_written', "AI dynamically wrote a new row to Google Sheet ID {$tenant->google_sheet_id}");
+                    } elseif ($writeActionType === 'update_sheet_ranges') {
+                        app(GoogleSheetsService::class)->updateSheetRanges($tenant->google_sheet_id, $writeActionData);
+                        ActivityLog::record('sheets_action_written', "AI dynamically updated custom ranges in Google Sheet ID {$tenant->google_sheet_id}");
+                    }
                 } catch (\Throwable $e) {
                     Log::error("Error executing dynamic sheet write from AI response: " . $e->getMessage());
                 }
@@ -368,31 +379,29 @@ Do not include any markup, markdown blocks (like ```json), or conversational fil
                 $sheetId = $tenant->google_sheet_id;
                 try {
                     $sheetData = \Illuminate\Support\Facades\Cache::remember("tenant_sheet_data_{$tenant->id}", 300, function() use ($sheetId) {
-                        return app(GoogleSheetsService::class)->getSheetValues($sheetId);
+                        return app(GoogleSheetsService::class)->getRawSheetGrid($sheetId);
                     });
 
-                    if (!empty($sheetData) && !empty($sheetData['headers'])) {
-                        // Compile sheet data into a readable grid
-                        $grid = "Columns: [" . implode(', ', $sheetData['headers']) . "]\nRows:\n";
-                        foreach ($sheetData['rows'] as $row) {
-                            $grid .= "- " . json_encode($row) . "\n";
-                        }
-
+                    if (!empty($sheetData) && !empty($sheetData['grid_text'])) {
                         $prompt .= "=== CONNECTED GOOGLE SHEET DATA (LIVE READ) ===\n";
-                        $prompt .= "You have real-time access to a connected spreadsheet dataset:\n";
-                        $prompt .= $grid . "\n";
+                        $prompt .= "You have real-time access to the connected spreadsheet dataset. Row numbers and column letter mapping are shown below:\n";
+                        $prompt .= "Sheet Columns: [" . implode(', ', $sheetData['columns'] ?? ['A','B','C','D','E','F','G','H','I','J']) . "]\n";
+                        $prompt .= "Sheet Values:\n" . $sheetData['grid_text'] . "\n\n";
 
                         if ($tenant->google_sheet_instructions) {
-                            $prompt .= "=== CUSTOM SHEET BUSINESS LOGIC ===\n";
-                            $prompt .= "Use the following rules to query the data above or capture/write new records:\n";
-                            $prompt .= $tenant->google_sheet_instructions . "\n\n";
+                             $prompt .= "=== CUSTOM SHEET BUSINESS LOGIC ===\n";
+                             $prompt .= "Use the following rules to query the data above or capture/write new records:\n";
+                             $prompt .= $tenant->google_sheet_instructions . "\n\n";
                         }
 
                         // Instruct the AI on how to write new rows
                         $prompt .= "=== DYNAMIC WRITE SYSTEM DIRECTIVE ===\n";
-                        $prompt .= "If you need to save/write a new record to the sheet, you MUST return a valid JSON action block at the very end of your response matching this exact format:\n";
-                        $prompt .= "WRITE_ACTION: {\"type\": \"write_sheet_row\", \"data\": {\"Column Name 1\": \"value1\", \"Column Name 2\": \"value2\"}}\n";
-                        $prompt .= "Ensure the keys in 'data' match the sheet headers case-insensitively. Keep this block separate from your conversational reply so the system can parse it.\n\n";
+                        $prompt .= "If you need to save/write/update records in the sheet, you can use one of these two actions at the very end of your response:\n";
+                        $prompt .= "1. For standard flat sheets, append a row:\n";
+                        $prompt .= "WRITE_ACTION: {\"type\": \"write_sheet_row\", \"data\": {\"Column Name\": \"value\"}}\n\n";
+                        $prompt .= "2. For custom calendar/blocked layouts, update specific ranges or cells directly:\n";
+                        $prompt .= "WRITE_ACTION: {\"type\": \"update_sheet_ranges\", \"ranges\": {\"Sheet1!C6:C14\": [[\"Value 1\"], [\"Value 2\"], [\"Value 3\"], [\"Value 4\"], [\"Value 5\"], [\"Value 6\"], [\"Value 7\"], [\"Value 8\"], [\"Value 9\"]]}}\n";
+                        $prompt .= "Ensure that the ranges and values are 100% correct based on the active rows and columns visible in the sheet dataset. Keep this block separate from your conversational reply so the system can parse it.\n\n";
                     }
                 } catch (\Throwable $e) {
                     Log::warning("Error injecting live sheets data in system prompt: " . $e->getMessage());

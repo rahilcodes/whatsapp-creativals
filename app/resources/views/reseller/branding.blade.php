@@ -77,59 +77,7 @@
         </div>
     </div>
 
-    {{-- ── Billing & Plans Settings ────────────────────────────────── --}}
-    <div class="card p-6 space-y-5">
-        <h3 class="text-sm font-semibold text-white">Billing & Subscription Settings</h3>
-        
-        <div class="space-y-4">
-            <label class="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" x-model="showBilling" class="rounded bg-slate-900 border-slate-700 text-brand-500 focus:ring-brand-500 w-4 h-4" />
-                <span class="text-xs text-slate-300 font-medium">Show Subscription & Billing dashboard to your clients</span>
-            </label>
-            
-            <div x-show="showBilling" class="space-y-4 pt-4 border-t border-slate-800">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase text-slate-500 font-semibold tracking-wider block">Billing Currency</label>
-                        <select x-model="billingCurrency" class="w-full text-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none">
-                            <option value="INR">INR (₹)</option>
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="GBP">GBP (£)</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    {{-- Starter Plan Customization --}}
-                    <div class="space-y-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20">
-                        <h4 class="text-xs font-semibold text-slate-300">Starter Plan Customization</h4>
-                        <div class="space-y-1.5">
-                            <label class="text-[9px] uppercase text-slate-500 font-semibold tracking-wider block">Custom Plan Name</label>
-                            <input x-model="planStarterName" type="text" placeholder="Starter" class="w-full text-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none" />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[9px] uppercase text-slate-500 font-semibold tracking-wider block">Monthly Price (e.g. 1249)</label>
-                            <input x-model="planStarterPrice" type="number" placeholder="1249" class="w-full text-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none" />
-                        </div>
-                    </div>
 
-                    {{-- Automator Plan Customization --}}
-                    <div class="space-y-3 p-4 rounded-xl border border-slate-800 bg-slate-950/20">
-                        <h4 class="text-xs font-semibold text-slate-300">Automator Plan Customization</h4>
-                        <div class="space-y-1.5">
-                            <label class="text-[9px] uppercase text-slate-500 font-semibold tracking-wider block">Custom Plan Name</label>
-                            <input x-model="planAutomatorName" type="text" placeholder="Automator" class="w-full text-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none" />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[9px] uppercase text-slate-500 font-semibold tracking-wider block">Monthly Price (e.g. 2999)</label>
-                            <input x-model="planAutomatorPrice" type="number" placeholder="2999" class="w-full text-xs px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 focus:outline-none" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- ── Live Preview ─────────────────────────────────────────── --}}
     <div class="card p-5">
@@ -175,12 +123,6 @@ function brandingPanel() {
     return {
         primaryColor: '{{ $reseller->primary_color ?? "#10b981" }}',
         sidebarColor: '{{ $reseller->sidebar_color ?? "#080f1e" }}',
-        showBilling: {{ $reseller->show_billing ? 'true' : 'false' }},
-        billingCurrency: '{{ $reseller->billing_currency ?? "INR" }}',
-        planStarterName: '{{ $reseller->plan_starter_name ?? "" }}',
-        planStarterPrice: '{{ $reseller->plan_starter_price !== null ? $reseller->plan_starter_price / 100 : "" }}',
-        planAutomatorName: '{{ $reseller->plan_automator_name ?? "" }}',
-        planAutomatorPrice: '{{ $reseller->plan_automator_price !== null ? $reseller->plan_automator_price / 100 : "" }}',
         logoFile: null,
         faviconFile: null,
         saving: false,
@@ -194,12 +136,6 @@ function brandingPanel() {
             form.append('_token', token);
             form.append('primary_color', this.primaryColor);
             form.append('sidebar_color', this.sidebarColor);
-            form.append('show_billing', this.showBilling ? 1 : 0);
-            form.append('billing_currency', this.billingCurrency || 'INR');
-            form.append('plan_starter_name', this.planStarterName || '');
-            form.append('plan_starter_price', this.planStarterPrice !== null && this.planStarterPrice !== undefined ? this.planStarterPrice : '');
-            form.append('plan_automator_name', this.planAutomatorName || '');
-            form.append('plan_automator_price', this.planAutomatorPrice !== null && this.planAutomatorPrice !== undefined ? this.planAutomatorPrice : '');
             if (this.logoFile)    form.append('logo', this.logoFile);
             if (this.faviconFile) form.append('favicon', this.faviconFile);
 

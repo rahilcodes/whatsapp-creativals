@@ -53,11 +53,26 @@ class BillingController extends Controller
         $tenant = auth()->user()->tenant;
         $plan = $request->input('plan');
 
-        // Select Plan IDs (slashed pricing amounts represented as recurring subscriptions)
-        // Defaults: Starter = plan_starter_test (₹2,499/mo), Automator = plan_automator_test (₹5,999/mo)
-        $planIdEnv = $plan === 'starter' 
-            ? config('services.razorpay.plan_starter', 'plan_starter_test') 
-            : config('services.razorpay.plan_automator', 'plan_automator_test');
+        // Let's resolve reseller
+        $reseller = app()->bound('active_reseller') ? app('active_reseller') : null;
+
+        // Determine price, name, currency
+        if ($reseller) {
+            $currency = $reseller->billing_currency ?: 'INR';
+            if ($plan === 'starter') {
+                $price = $reseller->plan_starter_price ?? 124900; // in paise/cents
+                $planName = $reseller->plan_starter_name ?: 'Starter';
+            } else {
+                $price = $reseller->plan_automator_price ?? 299900; // in paise/cents
+                $planName = $reseller->plan_automator_name ?: 'Automator';
+            }
+            $displayName = $reseller->name . ' ' . $planName;
+        } else {
+            $currency = 'INR';
+            $price = $plan === 'starter' ? 124900 : 299900;
+            $planName = $plan === 'starter' ? 'Starter' : 'Automator';
+            $displayName = 'iChatUp ' . $planName;
+        }
 
         if (!$this->isConfigured) {
             // Local Test Mode: Return simulated Razorpay subscription details
@@ -67,9 +82,47 @@ class BillingController extends Controller
                 'is_test' => true,
                 'subscription_id' => $mockSubId,
                 'key_id' => 'rzp_test_mockkey',
-                'amount' => $plan === 'starter' ? 124900 : 299900,
-                'name' => $plan === 'starter' ? 'iChatUp Starter Autopilot' : 'iChatUp Automator Pro',
+                'amount' => $price,
+                'name' => $displayName,
             ]);
+        }
+
+        $planId = null;
+        if (!$reseller) {
+            $planId = $plan === 'starter' 
+                ? config('services.razorpay.plan_starter', 'plan_starter_test') 
+                : config('services.razorpay.plan_automator', 'plan_automator_test');
+        } else {
+            // For resellers, we dynamically create a plan on Razorpay
+            // and cache the plan ID for 30 days to avoid duplicates and improve performance.
+            try {
+                $cacheKey = "rzp_plan_{$reseller->id}_{$plan}_{$price}_{$currency}";
+                $planId = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addDays(30), function () use ($price, $currency, $displayName) {
+                    $planResponse = Http::withBasicAuth($this->keyId, $this->keySecret)
+                        ->timeout(10)
+                        ->post('https://api.razorpay.com/v1/plans', [
+                            'period' => 'monthly',
+                            'interval' => 1,
+                            'item' => [
+                                'name' => $displayName . ' Plan',
+                                'amount' => $price,
+                                'currency' => $currency,
+                            ]
+                        ]);
+
+                    if ($planResponse->successful()) {
+                        return $planResponse->json('id');
+                    }
+                    
+                    throw new \Exception($planResponse->json('error.description') ?? 'Unknown error');
+                });
+            } catch (\Throwable $e) {
+                Log::error('Razorpay Plan creation exception', ['error' => $e->getMessage()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to resolve billing plan: ' . $e->getMessage()
+                ], 400);
+            }
         }
 
         try {
@@ -77,7 +130,7 @@ class BillingController extends Controller
             $response = Http::withBasicAuth($this->keyId, $this->keySecret)
                 ->timeout(10)
                 ->post('https://api.razorpay.com/v1/subscriptions', [
-                    'plan_id' => $planIdEnv,
+                    'plan_id' => $planId,
                     'total_count' => 120, // 10 years
                     'quantity' => 1,
                     'customer_notify' => 1,
@@ -117,6 +170,17 @@ class BillingController extends Controller
     public function purchaseSupportAddon(Request $request): JsonResponse
     {
         $tenant = auth()->user()->tenant;
+        $reseller = app()->bound('active_reseller') ? app('active_reseller') : null;
+
+        if ($reseller) {
+            $supportPrice = $reseller->plan_support_price ?? 249900;
+            $supportName = $reseller->plan_support_name ?: 'Onboarding Support';
+            $currency = $reseller->billing_currency ?: 'INR';
+        } else {
+            $supportPrice = 249900;
+            $supportName = 'Onboarding Support';
+            $currency = 'INR';
+        }
 
         if (!$this->isConfigured) {
             // Local Test Mode: Return simulated Order details
@@ -126,8 +190,8 @@ class BillingController extends Controller
                 'is_test' => true,
                 'order_id' => $mockOrderId,
                 'key_id' => 'rzp_test_mockkey',
-                'amount' => 249900,
-                'name' => 'iChatUp Setup Support Onboarding',
+                'amount' => $supportPrice,
+                'name' => $supportName,
             ]);
         }
 
@@ -136,8 +200,8 @@ class BillingController extends Controller
             $response = Http::withBasicAuth($this->keyId, $this->keySecret)
                 ->timeout(10)
                 ->post('https://api.razorpay.com/v1/orders', [
-                    'amount' => 249900, // ₹2,499 in paise
-                    'currency' => 'INR',
+                    'amount' => $supportPrice,
+                    'currency' => $currency,
                     'receipt' => 'receipt_support_' . $tenant->id,
                 ]);
 
@@ -147,7 +211,8 @@ class BillingController extends Controller
                     'is_test' => false,
                     'order_id' => $response->json('id'),
                     'key_id' => $this->keyId,
-                    'amount' => 249900
+                    'amount' => $supportPrice,
+                    'name' => $supportName,
                 ]);
             }
 
