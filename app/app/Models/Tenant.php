@@ -10,6 +10,7 @@ class Tenant extends Model
         'name',
         'slug',
         'status',
+        'reseller_id',
         // Billing fields
         'plan',
         'trial_ends_at',
@@ -35,6 +36,11 @@ class Tenant extends Model
     ];
 
     // ── Relationships ─────────────────────────────────────────
+
+    public function reseller()
+    {
+        return $this->belongsTo(Reseller::class);
+    }
 
     public function users()
     {

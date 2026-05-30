@@ -1,11 +1,18 @@
+@php
+    $reseller    = app()->has('active_reseller') ? app('active_reseller') : null;
+    $appName     = $reseller?->name ?? 'iChatUp';
+    $brandPrimary = $reseller?->primary_color ?? '#10b981';
+    $brandSidebar = $reseller?->sidebar_color ?? '#080f1e';
+    $faviconUrl  = $reseller?->favicon_path ? Storage::url($reseller->favicon_path) : asset('favicon.png');
+@endphp
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>@yield('title', 'WhatsApp AI') — WA Assistant</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
+    <title>@yield('title', $appName) — {{ $appName }}</title>
+    <link rel="icon" type="image/png" href="{{ $faviconUrl }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +26,7 @@
                     colors: {
                         brand: {
                             50:  '#ecfdf5', 100: '#d1fae5', 200: '#a7f3d0',
-                            300: '#6ee7b7', 400: '#34d399', 500: '#10b981',
+                            300: '#6ee7b7', 400: '#34d399', 500: '{{ $brandPrimary }}',
                             600: '#059669', 700: '#047857', 800: '#065f46', 900: '#064e3b',
                         },
                     },
@@ -27,7 +34,12 @@
             },
         };
     </script>
+    {{-- Dynamic brand CSS variables for reseller theming --}}
     <style>
+        :root {
+            --brand-primary: {{ $brandPrimary }};
+            --brand-sidebar: {{ $brandSidebar }};
+        }
         body { font-family: 'Inter', sans-serif; background: #070d1a; }
         .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.07); }
         .sidebar-link { transition: all 0.2s ease; }
@@ -99,8 +111,13 @@
             if (Auth::check() && Auth::user()->is_super_admin) {
                 $navItems[] = [
                     'route' => 'admin.dashboard',
-                    'icon' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                    'icon'  => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
                     'label' => 'Admin Panel'
+                ];
+                $navItems[] = [
+                    'route' => 'admin.resellers.index',
+                    'icon'  => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+                    'label' => 'Reseller Hub'
                 ];
             } else {
                 $navItems = [

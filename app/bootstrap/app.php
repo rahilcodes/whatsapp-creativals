@@ -13,12 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin.auth' => \App\Http\Middleware\AdminAuth::class,
-            'super.admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
-            'onboarded' => \App\Http\Middleware\RedirectIfOnboardingNotCompleted::class,
-            'subscribed' => \App\Http\Middleware\CheckSubscription::class,
+            'admin.auth'     => \App\Http\Middleware\AdminAuth::class,
+            'super.admin'    => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'onboarded'      => \App\Http\Middleware\RedirectIfOnboardingNotCompleted::class,
+            'subscribed'     => \App\Http\Middleware\CheckSubscription::class,
+            'reseller.admin' => \App\Http\Middleware\ResellerAdminMiddleware::class,
         ]);
         $middleware->web(append: [
+            \App\Http\Middleware\BrandResolutionMiddleware::class,
             \App\Http\Middleware\TenantMiddleware::class,
         ]);
         $middleware->api(append: [

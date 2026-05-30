@@ -118,6 +118,7 @@ Route::post('/webhooks/razorpay', [\App\Http\Controllers\Webhooks\RazorpayWebhoo
 
 // Super Admin Routes
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\ResellerController;
 
 Route::middleware(['auth', 'super.admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard',     [AdminDashboardController::class, 'dashboard'])->name('dashboard');
@@ -134,6 +135,40 @@ Route::middleware(['auth', 'super.admin'])->prefix('admin')->name('admin.')->gro
     
     // Redirect old tenants list to dashboard
     Route::get('/tenants', [TenantController::class, 'index'])->name('tenants.index');
+
+    // ── Reseller Management (Whitelabel Partner Onboarding) ────
+    Route::get('/resellers',              [ResellerController::class, 'index'])->name('resellers.index');
+    Route::get('/resellers/list',         [ResellerController::class, 'list'])->name('resellers.list');
+    Route::post('/resellers/create',      [ResellerController::class, 'store'])->name('resellers.store');
+    Route::post('/resellers/{id}/toggle', [ResellerController::class, 'toggleStatus'])->name('resellers.toggle');
+    Route::post('/resellers/{id}/update', [ResellerController::class, 'update'])->name('resellers.update');
 });
+
+
+// ── Reseller Admin Panel Routes ────────────────────────────────
+// These are accessed on the reseller's custom domain (e.g. panel.besurebot.com)
+// BrandResolutionMiddleware has already resolved the active_reseller from the domain.
+
+use App\Http\Controllers\Reseller\ResellerAdminController;
+
+Route::middleware(['auth', 'reseller.admin'])->prefix('reseller-admin')->name('reseller.')->group(function () {
+    // Dashboard
+    Route::get('/',          [ResellerAdminController::class, 'dashboard'])->name('dashboard');
+
+    // Client management
+    Route::get('/clients',            [ResellerAdminController::class, 'clients'])->name('clients');
+    Route::get('/clients/data',       [ResellerAdminController::class, 'clientsData'])->name('clients.data');
+    Route::post('/clients/create',    [ResellerAdminController::class, 'storeClient'])->name('clients.store');
+    Route::post('/clients/{id}/toggle', [ResellerAdminController::class, 'toggleClient'])->name('clients.toggle');
+
+    // Branding
+    Route::get('/branding',  [ResellerAdminController::class, 'branding'])->name('branding');
+    Route::post('/branding', [ResellerAdminController::class, 'updateBranding'])->name('branding.update');
+
+    // Payment gateway & SMTP
+    Route::get('/gateway',   [ResellerAdminController::class, 'gateway'])->name('gateway');
+    Route::post('/gateway',  [ResellerAdminController::class, 'updateGateway'])->name('gateway.update');
+});
+
 
 
